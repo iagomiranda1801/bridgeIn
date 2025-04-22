@@ -1,0 +1,46 @@
+{
+  "expo": {
+    "name": "BridgeIn",
+    "slug": "BridgeIn",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/logoone.png",
+    "scheme": "BridgeIn",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/logotwo.png",
+        "backgroundColor": "#001F41"
+      },
+      "package": "com.tabinfo.bridgein"
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static",
+      "favicon": "./assets/images/logotwo.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/logotwo.png",
+          "resizeMode": "cover",
+          "backgroundColor": "#001F41"
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      }
+    }
+  }
+}
