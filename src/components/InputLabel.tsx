@@ -6,7 +6,8 @@ import {
   StyleSheet,
   TouchableOpacity,
 } from 'react-native';
-import Ionicons from 'react-native-vector-icons/Ionicons';
+import { RFValue } from 'react-native-responsive-fontsize';
+import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
 
 const FloatingLabelInput = ({
   label,
@@ -98,7 +99,7 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     height: 48,
-    fontSize: 16,
+    fontSize: RFValue(16),
     color: '#FFFFFF',
     paddingHorizontal: 10,
   },
