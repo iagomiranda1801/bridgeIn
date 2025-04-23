@@ -1,27 +1,36 @@
 // src/screens/LoginScreen.tsx
 
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image, SafeAreaView, ScrollView, Dimensions } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Image, SafeAreaView, ScrollView, Dimensions, ActivityIndicator } from 'react-native';
 import api from '../config/index';
 import Toast from 'react-native-toast-message';
-import { login } from '../services/auth';
 import { RFValue } from 'react-native-responsive-fontsize';
-import { TextInput } from 'react-native-paper';
 import InputLabel from '../components/InputLabel';
+import LoadingScreen from '../loading/Index';
 
 const { width, height } = Dimensions.get('window');
 const Login: React.FC = ({ navigation }) => {
   const [email, setEmail] = useState('');
-  const [senha, setSenha] = useState('');
+  const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
-  const handleLogin = async () => {
+  const [registrationNumber, setRegistrationNumber] = useState('');
+  const [address, setAddress] = useState('');
+  const [neighborhood, setNeighborhood] = useState('');
+  const [province, setProvince] = useState('');
+  const [postalCode, setPostalCode] = useState('');
+  const [gender, setGender] = useState('');
+  const [birthDate, setBirthDate] = useState('');
+  const [profession, setProfession] = useState('');
+  const [experienceTime, setExperienceTime] = useState('');
+  const handleRegister = async () => {
     setLoading(true)
 
-    if (!email || !senha) {
+    if (!email || !password || !name || !registrationNumber || !address || !neighborhood || !province || !postalCode || !gender || !birthDate || !profession || !experienceTime) {
       Toast.show({
         type: 'error',
-        text1: 'Campos obrigatórios',
-        text2: 'Preencha todos os campos para continuar.',
+        text1: 'Inputs required',
+        text2: 'Fill in all the fields',
         position: 'top',
       });
       setLoading(false)
@@ -29,38 +38,47 @@ const Login: React.FC = ({ navigation }) => {
     }
     console.log("email", email)
     const payload = {
-      login: email,
-      senha,
+      email,
+      password,
+      name,
+      registration_number: registrationNumber,
+      address,
+      neighborhood,
+      province,
+      postal_code: postalCode,
+      gender,
+      birth_date: birthDate,
+      profession,
+      experience_time: experienceTime
     };
     console.log("payload", payload)
     try {
-      const response = await api.post('/mobile/register', payload);
+      const response = await api.post('/mobile/users/insert', payload);
       console.log("response", response.data)
       const data = response.data;
 
-      if (data.status === 1) {
+      if (data.Status === 1) {
         Toast.show({
           type: 'success',
-          text1: 'Login Realizado com sucesso!',
-          text2: 'Seja bem-vindo ao Last Click!',
+          text1: 'Register save with success',
         });
-        login(data.token);
         setTimeout(() => {
-          navigation.navigate('Dashboard');
+          navigation.navigate('Login');
         }, 1500);
+
       } else {
         Toast.show({
           type: 'error',
-          text1: 'Erro ao ao fazer login',
-          text2: data.mensagem,
+          text1: 'Erro in register',
+          text2: data.Mensagem,
         });
       }
     } catch (error) {
       console.error('Erro ao logar:', error);
       Toast.show({
         type: 'error',
-        text1: 'Erro ao cadastrar',
-        text2: 'Contate o suporte',
+        text1: 'Erro in register',
+        text2: 'Contact your administrator',
       });
     } finally {
       setLoading(false)
@@ -73,60 +91,175 @@ const Login: React.FC = ({ navigation }) => {
     const lowercase = "abcdefghijklmnopqrstuvwxyz";
     const numbers = "0123456789";
     const symbols = "!@#$%^&*()-_=+[]{}|;:,.<>?";
-  
+
     const allChars = uppercase + lowercase + numbers + symbols;
     let password = "";
-  
+
     // Garante que pelo menos um de cada tipo esteja na senha
     password += uppercase[Math.floor(Math.random() * uppercase.length)];
     password += lowercase[Math.floor(Math.random() * lowercase.length)];
     password += numbers[Math.floor(Math.random() * numbers.length)];
     password += symbols[Math.floor(Math.random() * symbols.length)];
-  
+
     // Preenche o resto da senha com caracteres aleatórios
-    console.log("i",password.length)
-    console.log("total",total)
+    console.log("i", password.length)
+    console.log("total", total)
     for (let i = password.length; i < total; i++) {
-      console.log("i",i)
+      console.log("i", i)
       password += allChars[Math.floor(Math.random() * allChars.length)];
     }
 
     console.log("password", password);
-  
+
     // Embaralha os caracteres (pra não ficar previsível)
     password
       .split('')
       .sort(() => 0.5 - Math.random())
       .join('');
 
-      setSenha(password);
+    setPassword(password);
   }
-  
+
 
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContainer} keyboardShouldPersistTaps="handled">
+        {loading && <LoadingScreen />}
         <Image source={require('../../assets/images/login.png')} style={styles.logo} resizeMode="contain" />
+
+        <InputLabel
+          label="Registration Number"
+          value={registrationNumber}
+          onChangeText={setRegistrationNumber}
+          placeholderText="Enter your registration number"
+          secureTextEntry={false}
+        />
+
+        <InputLabel
+          label="Name"
+          value={name}
+          onChangeText={setName}
+          placeholderText="Enter your name"
+          secureTextEntry={false}
+        />
+
         <InputLabel
           label="Email"
           value={email}
           onChangeText={setEmail}
-          placeholderText="Type your email here"
-          secureTextEntry={false} />
+          placeholderText="Enter your email"
+          secureTextEntry={false}
+        />
+
+        <InputLabel
+          label="Address"
+          value={address}
+          onChangeText={setAddress}
+          placeholderText="Enter your address"
+          secureTextEntry={false}
+        />
+
+        <InputLabel
+          label="Neighborhood"
+          value={neighborhood}
+          onChangeText={setNeighborhood}
+          placeholderText="Enter your neighborhood"
+          secureTextEntry={false}
+        />
+
+        <InputLabel
+          label="Province"
+          value={province}
+          onChangeText={setProvince}
+          placeholderText="Enter your province or state"
+          secureTextEntry={false}
+        />
+
+        <InputLabel
+          label="Postal Code"
+          value={postalCode}
+          onChangeText={setPostalCode}
+          placeholderText="Enter your postal code"
+          secureTextEntry={false}
+          isMasked={true}
+          typeKeyboard="text"
+          maskType="custom"
+          maskOptions={{ mask: 'A9A 9A9' }}
+        />
+
+
+        <InputLabel
+          label="Birth Date"
+          value={birthDate}
+          onChangeText={setBirthDate}
+          placeholderText="Enter your birth date"
+          secureTextEntry={false}
+          maskType="datetime"
+          isMasked={true}
+          maskOptions={{ format: 'YYYY-MM-DD' }}
+        />
+
+        <View style={styles.optionContainer}>
+          <TouchableOpacity
+            style={[
+              styles.option,
+              gender === 'Male' && styles.selectedOption,
+            ]}
+            onPress={() => setGender('Male')}
+          >
+            <Text style={[
+              styles.optionText,
+              gender === 'Male' && styles.optionTextOne,
+            ]}>Male</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.option,
+              gender === 'Female' && styles.selectedOption,
+            ]}
+            onPress={() => setGender('Female')}
+          >
+            <Text style={[
+              styles.optionText,
+              gender === 'Female' && styles.optionTextOne,
+            ]}>Female</Text>
+          </TouchableOpacity>
+        </View>
+        <InputLabel
+          label="Profession"
+          value={profession}
+          onChangeText={setProfession}
+          placeholderText="Enter your profession"
+          secureTextEntry={false}
+        />
+
+        <InputLabel
+          label="Experience Time"
+          value={experienceTime}
+          onChangeText={setExperienceTime}
+          placeholderText="Enter your experience time"
+          secureTextEntry={false}
+        />
+
 
         <InputLabel
           label="Password"
-          value={senha}
-          placeholderText="Type your password here"
-          onChangeText={setSenha}
+          value={password}
+          placeholderText="Enter your password"
+          onChangeText={setPassword}
           secureTextEntry={true} />
 
         <TouchableOpacity onPress={createAPassword} style={styles.forgotButton}>
           <Text style={styles.forgotText}>Create a strong password?</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.loginButton}>
-          <Text style={styles.loginText}>Register</Text>
+        <TouchableOpacity onPress={handleRegister} style={styles.loginButton}>
+          {loading ? (
+            <ActivityIndicator size="large" style={{ flex: 1 }} color="white" animating={true}></ActivityIndicator>
+          ) : (
+            <Text style={styles.loginText}>Register</Text>
+          )}
         </TouchableOpacity>
 
         <TouchableOpacity onPress={() => navigation.navigate('Login')} style={styles.registerButton}>
@@ -156,7 +289,7 @@ const styles = StyleSheet.create({
   logo: {
     width: width * 0.8,
     height: height * 0.25,
-    marginBottom: 30,
+    marginBottom: 5,
   },
   input: {
     width: '100%',
@@ -218,6 +351,33 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingVertical: 12,
     paddingHorizontal: 30,
+  },
+  optionContainer: {
+    flexDirection: 'row',
+    gap: 20,
+    bottom: 5,
+    marginTop: -10,
+    marginRight: 170
+  },
+  option: {
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'white',
+  },
+  selectedOption: {
+    backgroundColor: 'white',
+    borderColor: 'white',
+    color: 'black'
+  },
+  optionText: {
+    color: '#fff',
+    fontWeight: '500',
+  },
+  optionTextOne: {
+    color: 'black',
+    fontWeight: '500',
   },
   registerText: {
     color: '#1DBFFF',

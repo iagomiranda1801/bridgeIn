@@ -14,10 +14,6 @@ import Dashboard from '../dashboard';
 import LoadingScreen from '../loading/Index';
 const Stack = createNativeStackNavigator();
 
-
-
-
-
 const toastConfig = {
   success: (props) => (
     <BaseToast

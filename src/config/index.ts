@@ -1,8 +1,7 @@
 import axios from 'axios';
 import { getToken } from '../services/auth';
 
-const URL_API = 'https://homolog.lastclick.com.br/api/';
-
+const URL_API = 'http://192.168.1.4/bridgein/api';
 
 const api = axios.create({
  baseURL: URL_API,

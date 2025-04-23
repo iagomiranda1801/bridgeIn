@@ -20,8 +20,8 @@ const Login: React.FC = ({ navigation }) => {
     if (!email || !senha) {
       Toast.show({
         type: 'error',
-        text1: 'Campos obrigatórios',
-        text2: 'Preencha todos os campos para continuar.',
+        text1: 'Required fields',
+        text2: 'Fill in all the fields',
         position: 'top',
       });
       setLoading(false)
@@ -30,7 +30,7 @@ const Login: React.FC = ({ navigation }) => {
     console.log("email", email)
     const payload = {
       login: email,
-      senha,
+      password: senha,
     };
     console.log("payload", payload)
     try {
@@ -38,29 +38,28 @@ const Login: React.FC = ({ navigation }) => {
       console.log("response", response.data)
       const data = response.data;
 
-      if (data.status === 1) {
+      if (data.Status === 1) {
         Toast.show({
           type: 'success',
-          text1: 'Login Realizado com sucesso!',
-          text2: 'Seja bem-vindo ao Last Click!',
+          text1: 'Login ready to go!',
         });
         login(data.token);
-        setTimeout(() => {
-          navigation.navigate('Dashboard');
-        }, 1500);
+        // setTimeout(() => {
+        //   navigation.navigate('Dashboard');
+        // }, 1500);
       } else {
         Toast.show({
           type: 'error',
-          text1: 'Erro ao ao fazer login',
-          text2: data.mensagem,
+          text1: 'Error in login',
+          text2: data.Mensagem,
         });
       }
     } catch (error) {
       console.error('Erro ao logar:', error);
       Toast.show({
         type: 'error',
-        text1: 'Erro ao cadastrar',
-        text2: 'Contate o suporte',
+        text1: 'Error in login',
+        text2: 'Contact your administrator',
       });
     } finally {
       setLoading(false)
