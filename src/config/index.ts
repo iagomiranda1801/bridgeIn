@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { getToken } from '../services/auth';
 
-const URL_API = 'http://192.168.1.4/bridgein/api';
+const URL_API = 'http://192.168.0.33/bridgein/api';
 
 const api = axios.create({
  baseURL: URL_API,

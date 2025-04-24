@@ -43,10 +43,11 @@ const Login: React.FC = ({ navigation }) => {
           type: 'success',
           text1: 'Login ready to go!',
         });
-        login(data.token);
-        // setTimeout(() => {
-        //   navigation.navigate('Dashboard');
-        // }, 1500);
+        console.log("data", data.Token)
+        login(data.Token);
+        setTimeout(() => {
+          navigation.navigate('Dashboard');
+        }, 1500);
       } else {
         Toast.show({
           type: 'error',
@@ -112,7 +113,7 @@ const Login: React.FC = ({ navigation }) => {
       </ScrollView>
     </SafeAreaView>
   );
-}
+};
 
 export default Login;
 

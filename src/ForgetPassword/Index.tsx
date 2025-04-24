@@ -1,7 +1,7 @@
 // src/screens/LoginScreen.tsx
 
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image, SafeAreaView, ScrollView, Dimensions } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Image, SafeAreaView, ScrollView, Dimensions, ActivityIndicator } from 'react-native';
 import api from '../config/index';
 import Toast from 'react-native-toast-message';
 import { login } from '../services/auth';
@@ -14,17 +14,21 @@ const ForgetPassowrd: React.FC = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
   const [loading, setLoading] = useState(false);
+
   const handleLogin = async () => {
     setLoading(true)
 
     if (!email) {
       Toast.show({
         type: 'error',
-        text1: 'Campos obrigatórios',
-        text2: 'Preencha todos os campos para continuar.',
+        text1: 'Required fields',
+        text2: 'Fill in all the fields',
         position: 'top',
       });
       setLoading(false)
+      setTimeout(() => {
+        navigation.navigate('Login');
+      }, 2000);
       return;
     }
     console.log("email", email)
@@ -33,33 +37,28 @@ const ForgetPassowrd: React.FC = ({ navigation }) => {
     };
     console.log("payload", payload)
     try {
-      const response = await api.post('/mobile/register', payload);
+      const response = await api.post('/mobile/password/forget', payload);
       console.log("response", response.data)
       const data = response.data;
 
-      if (data.status === 1) {
+      if (data.Status === 1) {
         Toast.show({
           type: 'success',
-          text1: 'Login Realizado com sucesso!',
-          text2: 'Seja bem-vindo ao Last Click!',
+          text1: 'Email send successfully',
+          text2: data.Message,
         });
-        login(data.token);
-        setTimeout(() => {
-          navigation.navigate('Dashboard');
-        }, 1500);
       } else {
         Toast.show({
           type: 'error',
-          text1: 'Erro ao ao fazer login',
-          text2: data.mensagem,
+          text1: 'Error in send email',
+          text2: data.Message,
         });
       }
     } catch (error) {
-      console.error('Erro ao logar:', error);
       Toast.show({
         type: 'error',
-        text1: 'Erro ao cadastrar',
-        text2: 'Contate o suporte',
+        text1: 'Error in send email',
+        text2: 'Contact your administrator',
       });
     } finally {
       setLoading(false)
@@ -78,12 +77,19 @@ const ForgetPassowrd: React.FC = ({ navigation }) => {
           value={email}
           placeholderText="Type your email here"
           onChangeText={setEmail}
-          secureTextEntry={true} />
-          
-        <TouchableOpacity style={styles.loginButton}>
-          <Text style={styles.loginText}>Send</Text>
+          secureTextEntry={false} />
+
+        <TouchableOpacity onPress={handleLogin} style={styles.loginButton}>
+          {loading ? (
+            <ActivityIndicator size="large" style={{ flex: 1 }} color="white" animating={true}></ActivityIndicator>
+          ) : (
+            <Text style={styles.loginText}> Send</Text>
+          )}
         </TouchableOpacity>
 
+        <TouchableOpacity onPress={() => navigation.navigate('Login')} style={styles.registerButton}>
+          <Text style={styles.registerText}>Return</Text>
+        </TouchableOpacity>
 
       </ScrollView>
     </SafeAreaView>
