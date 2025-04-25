@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { getToken } from '../services/auth';
 
-const URL_API = 'http://192.168.0.33/bridgein/api';
+const URL_API = 'https://homolog.bridgein.ca/api';
 
 const api = axios.create({
  baseURL: URL_API,
@@ -9,7 +9,7 @@ const api = axios.create({
 
 api.interceptors.request.use(async config => {
   const token = await getToken();
-  console.log("token", token);
+  // console.log("token", token);
   if (token) {
     config.headers.Token = token; // <- CORRETO para a API
   }

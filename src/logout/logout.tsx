@@ -10,17 +10,14 @@ const LogoutScreen = ({ navigation }) => {
       console.log('Logout realizado!');
 
       // Redireciona para Dashboard e limpa o histórico de navegação
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'Login' }],
-      });
+      navigation.navigate('Login');
     };
 
     doLogout();
   }, []);
 
   return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'black1' }}>
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'black' }}>
       <ActivityIndicator size="large" color="#B7FF00" />
     </View>
   );
