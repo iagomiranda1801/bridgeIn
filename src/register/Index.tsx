@@ -70,11 +70,11 @@ const Login: React.FC = ({ navigation }) => {
         Toast.show({
           type: 'error',
           text1: 'Erro in register',
-          text2: data.Mensagem,
+          text2: data.Message,
         });
       }
     } catch (error) {
-      console.error('Erro ao logar:', error);
+      console.error('Erro ao Registrar:', error);
       Toast.show({
         type: 'error',
         text1: 'Erro in register',
