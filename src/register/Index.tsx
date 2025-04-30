@@ -23,19 +23,55 @@ const Login: React.FC = ({ navigation }) => {
   const [birthDate, setBirthDate] = useState('');
   const [profession, setProfession] = useState('');
   const [experienceTime, setExperienceTime] = useState('');
+  const [fieldErrors, setFieldErrors] = useState({
+    email: false,
+    password: false,
+    name: false,
+    registrationNumber: false,
+    address: false,
+    neighborhood: false,
+    province: false,
+    postalCode: false,
+    gender: false,
+    birthDate: false,
+    profession: false,
+    experienceTime: false
+    // Adicione os demais campos conforme necessário
+  });
+
   const handleRegister = async () => {
     setLoading(true)
 
-    if (!email || !password || !name || !registrationNumber || !address || !neighborhood || !province || !postalCode || !gender || !birthDate || !profession || !experienceTime) {
+    const newErrors = {
+      email: !email,
+      password: !password,
+      name: !name,
+      registrationNumber: !registrationNumber,
+      address: !address,
+      neighborhood: !neighborhood,  // Adicione os demais campos conforme necessário
+      province: !province,
+      postalCode: !postalCode,
+      gender: !gender,
+      birthDate: !birthDate,
+      profession: !profession,
+      experienceTime: !experienceTime
+      // Verifica os outros campos também
+    };
+
+    setFieldErrors(newErrors);
+
+    const hasErrors = Object.values(newErrors).some(Boolean);
+    if (hasErrors) {
       Toast.show({
         type: 'error',
         text1: 'Inputs required',
         text2: 'Fill in all the fields',
         position: 'top',
       });
-      setLoading(false)
+      setLoading(false);
       return;
     }
+
     console.log("email", email)
     const payload = {
       email,
@@ -130,23 +166,35 @@ const Login: React.FC = ({ navigation }) => {
         <InputLabel
           label="Registration Number"
           value={registrationNumber}
-          onChangeText={setRegistrationNumber}
+          onChangeText={(text) => {
+            setRegistrationNumber(text);
+            setFieldErrors(prev => ({ ...prev, registrationNumber: false })); // limpa erro ao digitar
+          }}
           placeholderText="Enter your registration number"
           secureTextEntry={false}
+          hasError={fieldErrors.registrationNumber}
         />
 
         <InputLabel
           label="Name"
           value={name}
-          onChangeText={setName}
+          onChangeText={(text) => {
+            setName(text);
+            setFieldErrors(prev => ({ ...prev, name: false })); // limpa erro ao digitar
+          }}
           placeholderText="Enter your name"
           secureTextEntry={false}
+          hasError={fieldErrors.name}
         />
 
         <InputLabel
           label="Email"
           value={email}
-          onChangeText={setEmail}
+          hasError={fieldErrors.email}
+          onChangeText={(text) => {
+            setEmail(text);
+            setFieldErrors(prev => ({ ...prev, email: false })); // limpa erro ao digitar
+          }}
           placeholderText="Enter your email"
           secureTextEntry={false}
         />
@@ -154,7 +202,11 @@ const Login: React.FC = ({ navigation }) => {
         <InputLabel
           label="Address"
           value={address}
-          onChangeText={setAddress}
+          hasError={fieldErrors.address}
+          onChangeText={(text) => {
+            setAddress(text);
+            setFieldErrors(prev => ({ ...prev, address: false })); // limpa erro ao digitar
+          }}
           placeholderText="Enter your address"
           secureTextEntry={false}
         />
@@ -162,7 +214,11 @@ const Login: React.FC = ({ navigation }) => {
         <InputLabel
           label="Neighborhood"
           value={neighborhood}
-          onChangeText={setNeighborhood}
+          hasError={fieldErrors.neighborhood}
+          onChangeText={(text) => {
+            setNeighborhood(text);
+            setFieldErrors(prev => ({ ...prev, neighborhood: false })); // limpa erro ao digitar
+          }}
           placeholderText="Enter your neighborhood"
           secureTextEntry={false}
         />
@@ -170,7 +226,11 @@ const Login: React.FC = ({ navigation }) => {
         <InputLabel
           label="Province"
           value={province}
-          onChangeText={setProvince}
+          hasError={fieldErrors.province}
+          onChangeText={(text) => {
+            setProvince(text);
+            setFieldErrors(prev => ({ ...prev, province: false })); // limpa erro ao digitar
+          }}
           placeholderText="Enter your province or state"
           secureTextEntry={false}
         />
@@ -178,8 +238,12 @@ const Login: React.FC = ({ navigation }) => {
         <InputLabel
           label="Postal Code"
           value={postalCode}
-          onChangeText={setPostalCode}
-          placeholderText="Enter your postal code"
+          hasError={fieldErrors.postalCode}
+          onChangeText={(text) => {
+            setPostalCode(text);
+            setFieldErrors(prev => ({ ...prev, postalCode: false })); // limpa erro ao digitar
+          }}
+          placeholderText="Enter your postal code (A1B-2A1)"
           secureTextEntry={false}
           isMasked={true}
           typeKeyboard="text"
@@ -191,7 +255,11 @@ const Login: React.FC = ({ navigation }) => {
         <InputLabel
           label="Birth Date"
           value={birthDate}
-          onChangeText={setBirthDate}
+          hasError={fieldErrors.birthDate}
+          onChangeText={(text) => {
+            setBirthDate(text);
+            setFieldErrors(prev => ({ ...prev, birthDate: false })); // limpa erro ao digitar
+          }}
           placeholderText="Enter your birth date"
           secureTextEntry={false}
           maskType="datetime"
@@ -229,7 +297,11 @@ const Login: React.FC = ({ navigation }) => {
         <InputLabel
           label="Profession"
           value={profession}
-          onChangeText={setProfession}
+          hasError={fieldErrors.profession}
+          onChangeText={(text) => {
+            setProfession(text);
+            setFieldErrors(prev => ({ ...prev, profession: false })); // limpa erro ao digitar
+          }}
           placeholderText="Enter your profession"
           secureTextEntry={false}
         />
@@ -237,8 +309,12 @@ const Login: React.FC = ({ navigation }) => {
         <InputLabel
           label="Experience Time"
           value={experienceTime}
-          onChangeText={setExperienceTime}
+          onChangeText={(text) => {
+            setExperienceTime(text);
+            setFieldErrors(prev => ({ ...prev, experienceTime: false })); // limpa erro ao digitar
+          }}
           placeholderText="Enter your experience time"
+          hasError={fieldErrors.experienceTime}
           secureTextEntry={false}
         />
 
@@ -247,7 +323,11 @@ const Login: React.FC = ({ navigation }) => {
           label="Password"
           value={password}
           placeholderText="Enter your password"
-          onChangeText={setPassword}
+          onChangeText={(text) => {
+            setPassword(text);
+            setFieldErrors(prev => ({ ...prev, password: false })); // limpa erro ao digitar
+          }}
+          hasError={fieldErrors.password}
           secureTextEntry={true} />
 
         <TouchableOpacity onPress={createAPassword} style={styles.forgotButton}>

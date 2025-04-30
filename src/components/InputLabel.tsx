@@ -9,9 +9,11 @@ import {
 import { RFValue } from 'react-native-responsive-fontsize';
 import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
 import { TextInputMask } from 'react-native-masked-text';
+import { Text } from 'react-native';
 
   const FloatingLabelInput = ({
     label,
+    hasError = false,
     value,
     onChangeText,
     placeholderText,
@@ -59,7 +61,7 @@ import { TextInputMask } from 'react-native-masked-text';
     return (
       <View style={[styles.container, containerStyle]}>
         <Animated.Text style={labelStyle}>{label}</Animated.Text>
-        <View style={styles.inputWrapper}>
+        <View style={[styles.inputWrapper, hasError && { borderColor: 'red' }]}>
           {isMasked ? (
             <TextInputMask
               type={maskType}
@@ -80,7 +82,7 @@ import { TextInputMask } from 'react-native-masked-text';
               onChangeText={onChangeText}
               placeholder={placeholderText}
               placeholderTextColor="#ffffff"
-              style={[styles.input, inputStyle]}
+              style={[styles.input, inputStyle, hasError && { borderColor: 'red' }]}
               secureTextEntry={secureTextEntry && !showPassword}
               onFocus={() => setIsFocused(true)}
               onBlur={() => setIsFocused(false)}
@@ -97,6 +99,11 @@ import { TextInputMask } from 'react-native-masked-text';
             </TouchableOpacity>
           )}
         </View>
+        {hasError && (
+          <View style={{ marginTop: 5 }}>
+          <Text style={{ color: 'red' }}>Digit this field</Text>
+          </View>
+        )}
       </View>
     );
   };
