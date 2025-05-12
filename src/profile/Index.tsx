@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, TextInput } from 'react-native';
+import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, TextInput, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import Toast from 'react-native-toast-message';
 import api from '../config';
 import { RFValue } from 'react-native-responsive-fontsize';
+import { login } from '../services/auth';
 const ProfileScreen = () => {
   const insets = useSafeAreaInsets();
   const [profile, setProfile] = useState(null);
@@ -20,16 +21,33 @@ const ProfileScreen = () => {
   });
   const [description, setDescription] = useState('');
   const [profession, setProfession] = useState('');
+  const [selectedDays, setSelectedDays] = useState<string[]>([]);
+  const weekDays = ['Sun', 'M', 'Tue', 'W', 'Thu', 'F', 'Sat'];
+  const [loading, setLoading] = useState(false);
+  
   const toggleSlot = (slot: string) => {
     setAvailability(prev => ({ ...prev, [slot]: !prev[slot] }));
   };
+
+  const toggleDay = (day: string) => {
+    setSelectedDays(prev =>
+      prev.includes(day) ? prev.filter(d => d !== day) : [...prev, day]
+    );
+  };
+
 
   useEffect(() => {
     async function fetchData() {
       try {
         const response = await api.post('/mobile/users/dados');
         const data = response.data.Data
+        console.log("data", data)
         setProfile(data);
+        setProfession(data.profession);
+        setName(data.name);
+        setSalaryRange(data.salary_range);
+        setExperienceTime(data.experience_time);
+        setDescription(data.description);
       } catch (error) {
         console.error('Erro ao logar:', error);
         Toast.show({
@@ -43,6 +61,80 @@ const ProfileScreen = () => {
     }
     fetchData();
   }, []);
+
+  // async function fetchData() {
+  //   try {
+  //     const response = await api.post('/mobile/users/dados');
+  //     const data = response.data.Data
+  //     console.log("data", data)
+  //     setProfile(data);
+  //     setProfession(data.profession);
+  //     setName(data.name);
+  //     setSalaryRange(data.salary_range);
+  //     setExperienceTime(data.experience_time);
+  //     setDescription(data.description);
+  //     setAvailability(data.availability);
+  //   } catch (error) {
+  //     console.error('Erro ao logar:', error);
+  //     Toast.show({
+  //       type: 'error',
+  //       text1: 'Error in login',
+  //       text2: 'Contact your administrator',
+  //     });
+  //   } finally {
+
+  //   }
+  // }
+
+  const handleSaveProfile = async () => {
+    try {
+
+      const payload = {
+        name,
+        salary_range,
+        experience_time,
+        description,
+        profession,
+        availability: JSON.stringify(availability),
+        email: profile?.email,
+        login: profile?.email,
+        days_of_week: JSON.stringify(selectedDays),
+        id: profile?.id,
+        user_id: profile?.user_id,
+      };
+
+      console.log("payload", payload)
+
+      const response = await api.post('/mobile/users/update', payload);
+      console.log("response", response.data)
+
+      if(response.data.Status !== 1) {
+        Toast.show({
+          type: 'error',
+          text1: 'Erro ao atualizar perfil!',
+          text2: 'Verifique os dados e tente novamente.',
+        });
+        return;
+      }
+
+      Toast.show({
+        type: 'success',
+        text1: 'Perfil atualizado!',
+        text2: 'Seus dados foram salvos com sucesso.',
+      });
+
+      setIsEditing(false);
+      // await fetchData();
+    } catch (error) {
+      console.error('Erro ao atualizar perfil:', error);
+      Toast.show({
+        type: 'error',
+        text1: 'Erro ao salvar',
+        text2: 'Tente novamente mais tarde.',
+      });
+    }
+  };
+
 
   return (
     <ScrollView contentContainerStyle={[styles.container, { paddingTop: insets.top }]}>
@@ -145,24 +237,28 @@ const ProfileScreen = () => {
         <Text style={styles.link}>Syndicate verification</Text>
       </TouchableOpacity> */}
 
-      <View style={styles.section}>
-        <Text style={styles.label}>Days of the week</Text>
-        <View style={styles.daysRow}>
-          {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, i) => (
-            <View key={i} style={[styles.dayBox, i > 1 && i < 6 ? styles.dayBoxFilled : null]}>
-              <Text
-                style={[
-                  styles.dayText,
-                  day === 'S' || day === 'M' ? { color: '#0a2e4de' } : null,
-                ]}
-              >
-                {day}
-              </Text>
-            </View>
-          ))}
-
-        </View>
+      <View style={styles.daysRow}>
+        {weekDays.map((day, i) => (
+          <TouchableOpacity
+            key={i}
+            style={[
+              styles.dayBox,
+              selectedDays.includes(day) && styles.dayBoxFilled,
+            ]}
+            onPress={() => toggleDay(day)}
+          >
+            <Text
+              style={[
+                styles.dayText,
+                selectedDays.includes(day) ? { color: '#fff' } : { color: '#0a2e4d' },
+              ]}
+            >
+              {day}
+            </Text>
+          </TouchableOpacity>
+        ))}
       </View>
+
       <View style={styles.section}>
         <Text style={styles.label}>Availability</Text>
         <View style={styles.availabilityRow}>
@@ -174,6 +270,16 @@ const ProfileScreen = () => {
           ))}
         </View>
       </View>
+      {isEditing && (
+        <TouchableOpacity onPress={handleSaveProfile} style={styles.loginButton}>
+          {loading ? (
+            <ActivityIndicator size="large" style={{ flex: 1 }} color="white" animating={true}></ActivityIndicator>
+          ) : (
+            <Text style={styles.loginText}> Registrar</Text>
+          )}
+
+        </TouchableOpacity>
+      )}
     </ScrollView>
   );
 };
@@ -210,6 +316,19 @@ const styles = StyleSheet.create({
   },
   iconButton: {
     padding: wp('2%'),
+  },
+  loginButton: {
+    width: '100%',
+    backgroundColor: '#1DBFFF',
+    borderRadius: 12,
+    paddingVertical: 15,
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  loginText: {
+    color: '#fff',
+    fontSize: RFValue(16),
+    fontWeight: 'bold',
   },
   avatar: {
     width: wp('30%'),
