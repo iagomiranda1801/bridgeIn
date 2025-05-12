@@ -84,9 +84,12 @@ const Login: React.FC = ({ navigation }) => {
           onChangeText={setSenha}
           secureTextEntry={true} />
 
-        <TouchableOpacity onPress={() => navigation.navigate('ForgetPassowrd')}>
-          <Text style={styles.forgotText}>Forgot your password?</Text>
-        </TouchableOpacity>
+        <View style={{width: '100%', marginBottom: 20}}>
+          <TouchableOpacity onPress={() => navigation.navigate('ForgetPassword')}>
+            <Text style={styles.forgotText}>Forgot your password?</Text>
+          </TouchableOpacity>
+        </View>
+
         <TouchableOpacity onPress={handleLogin} style={styles.loginButton}>
           {loading ? (
             <ActivityIndicator size="large" style={{ flex: 1 }} color="white" animating={true}></ActivityIndicator>
@@ -144,6 +147,7 @@ const styles = StyleSheet.create({
     fontSize: RFValue(13),
     alignSelf: 'flex-end',
     marginBottom: 25,
+    width: '100%',
   },
   loginButton: {
     width: '100%',

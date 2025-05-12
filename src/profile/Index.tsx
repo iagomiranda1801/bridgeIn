@@ -1,19 +1,25 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, TextInput } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import Toast from 'react-native-toast-message';
 import api from '../config';
+import { RFValue } from 'react-native-responsive-fontsize';
 const ProfileScreen = () => {
   const insets = useSafeAreaInsets();
   const [profile, setProfile] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [name, setName] = useState('');
+  const [salary_range, setSalaryRange] = useState('');
+  const [experience_time, setExperienceTime] = useState('');
   const [availability, setAvailability] = useState({
     Morning: false,
     Afternoon: false,
     Night: false,
     Dawn: false,
   });
-
+  const [description, setDescription] = useState('');
+  const [profession, setProfession] = useState('');
   const toggleSlot = (slot: string) => {
     setAvailability(prev => ({ ...prev, [slot]: !prev[slot] }));
   };
@@ -41,7 +47,7 @@ const ProfileScreen = () => {
   return (
     <ScrollView contentContainerStyle={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.iconButton}><Text>✏️</Text></TouchableOpacity>
+        <TouchableOpacity onPress={() => setIsEditing(!isEditing)} style={styles.iconButton}><Text>✏️</Text></TouchableOpacity>
         <Image
           source={{ uri: 'https://i.imgur.com/B0oV4Ju.png' }} // Substitua com sua imagem
           style={styles.avatar}
@@ -49,58 +55,95 @@ const ProfileScreen = () => {
         <TouchableOpacity style={styles.iconButton}><Text>☰</Text></TouchableOpacity>
       </View>
 
-      <Text style={styles.name}>{profile?.name}</Text>
+      {isEditing ? (
+        <View style={styles.inputWrapper}>
+          <TextInput placeholder="Name" placeholderTextColor="black" value={name} onChangeText={setName} style={styles.input} />
+        </View>
+      ) : (
+        <Text style={styles.text}>{name}</Text>
+      )}
 
-      <Text style={styles.progressText}>Profile 80% complete</Text>
+
+      {/* <Text style={styles.progressText}>Profile 80% complete</Text>
       <View style={styles.progressBar}>
         <View style={styles.progressFill} />
-      </View>
+      </View> */}
 
-      <View style={styles.section}>
-        <Text style={styles.label}>Salary Range:</Text>
-        <Text style={styles.text}>$800</Text>
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.label}>Experience Time:</Text>
-        <Text style={styles.text}>{profile?.experience_time}</Text>
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.label}>Professional Area:</Text>
-        <Text style={styles.text}>
-          {profile?.profession}
-        </Text>
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.label}>Photos</Text>
-        <ScrollView horizontal>
-          {['https://i.imgur.com/Z1gD8V2.jpg', 'https://i.imgur.com/G0qlf6B.jpg'].map((uri, i) => (
-            <Image key={i} source={{ uri }} style={styles.photo} />
-          ))}
-        </ScrollView>
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.label}>Documents</Text>
-        <View style={styles.tagsRow}>
-          {['authorization_certificate.pdf', 'identity_card.pdf'].map((doc, i) => (
-            <View key={i} style={styles.docTag}>
-              <Text style={styles.docText}>{doc}</Text>
-            </View>
-          ))}
+      {isEditing ? (
+        <View style={styles.inputWrapper}>
+          <TextInput
+            value={salary_range}
+            placeholder="Salary Range"
+            placeholderTextColor="black"
+            onChangeText={setSalaryRange}
+            style={styles.input}
+          />
         </View>
-      </View>
+      ) : (
+        <View style={styles.section}>
+          <Text style={styles.label}>Salary Range:</Text>
+          <Text style={styles.text}>{profile?.salary_range}</Text>
+        </View>
+      )}
 
-      <View style={styles.section}>
-        <Text style={styles.label}>More Information:</Text>
-        <Text style={styles.text}>Speak English and Spanish.</Text>
-      </View>
 
-      <TouchableOpacity>
+      {isEditing ? (
+        <View style={styles.inputWrapper}>
+          <TextInput
+            value={experience_time}
+            placeholder='Experience Time'
+            placeholderTextColor={"black"}
+            onChangeText={setExperienceTime}
+            style={styles.input}
+          />
+        </View>
+
+      ) : (
+        <View style={styles.section}>
+          <Text style={styles.label}>Experience Time:</Text>
+          <Text style={styles.text}>{profile?.experience_time}</Text>
+        </View>
+      )}
+
+      {isEditing ? (
+        <View style={styles.inputWrapper}>
+          <TextInput
+            placeholder='Profession'
+            placeholderTextColor={"black"}
+            value={profession}
+            onChangeText={setProfession}
+            style={styles.text}
+          />
+        </View>
+
+      ) : (
+        <View style={styles.section}>
+          <Text style={styles.label}>Professional Area:</Text>
+          <Text style={styles.text}>{profile?.profession}</Text>
+        </View>
+      )}
+
+      {isEditing ? (
+        <View style={styles.inputWrapper}>
+          <TextInput
+            placeholder='More Information:'
+            placeholderTextColor={"black"}
+            value={description}
+            onChangeText={setDescription}
+            style={styles.text}
+          />
+        </View>
+
+      ) : (
+        <View style={styles.section}>
+          <Text style={styles.label}>More Information:</Text>
+          <Text style={styles.text}>{profile?.description}</Text>
+        </View>
+      )}
+
+      {/* <TouchableOpacity>
         <Text style={styles.link}>Syndicate verification</Text>
-      </TouchableOpacity>
+      </TouchableOpacity> */}
 
       <View style={styles.section}>
         <Text style={styles.label}>Days of the week</Text>
@@ -142,6 +185,23 @@ const styles = StyleSheet.create({
     backgroundColor: '#e6f5fb',
     paddingHorizontal: wp('5%'),
     paddingBottom: hp('10%'),
+  },
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: 'black',
+    borderRadius: 8,
+    width: '100%',
+    marginBottom: hp('2%'),
+  },
+  input: {
+    flex: 1,
+    height: 48,
+    fontSize: RFValue(16),
+    color: 'black',
+    borderColor: '#000',
+    paddingHorizontal: 10,
   },
   header: {
     flexDirection: 'row',
