@@ -1,11 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, TextInput, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import Toast from 'react-native-toast-message';
 import api from '../config';
 import { RFValue } from 'react-native-responsive-fontsize';
-import { login } from '../services/auth';
+import * as ImagePicker from 'expo-image-picker';
+import * as FileSystem from 'expo-file-system';
+
 const ProfileScreen = () => {
   const insets = useSafeAreaInsets();
   const [profile, setProfile] = useState(null);
@@ -24,7 +26,17 @@ const ProfileScreen = () => {
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
   const weekDays = ['Sun', 'M', 'Tue', 'W', 'Thu', 'F', 'Sat'];
   const [loading, setLoading] = useState(false);
-  
+  const [avatarUri, setAvatarUri] = useState(null);
+
+  useEffect(() => {
+    (async () => {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permissão necessária', 'Precisamos de acesso à galeria para escolher uma imagem.');
+      }
+    })();
+  }, []);
+
   const toggleSlot = (slot: string) => {
     setAvailability(prev => ({ ...prev, [slot]: !prev[slot] }));
   };
@@ -35,61 +47,64 @@ const ProfileScreen = () => {
     );
   };
 
+  const pickImage = async () => {
+    setAvatarUri(null)
+
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 0.7,
+    });
+
+    if (!result.canceled && result.assets.length > 0) {
+      console.log("result", result.assets[0].uri)
+      setAvatarUri(result.assets[0].uri);
+    }
+  };
+
+  async function fetchData() {
+    try {
+      const response = await api.post('/mobile/users/dados');
+      const data = response.data.Data
+
+      setProfile(data);
+      setProfession(data.profession);
+      setName(data.name);
+      setSalaryRange(data.salary_range);
+      setExperienceTime(data.experience_time);
+      setDescription(data.description);
+      setAvatarUri(null); // Limpa avatarUri para garantir que a imagem do banco será usada
+      setSelectedDays(data.days_of_week ? JSON.parse(data.days_of_week) : []);
+      setAvailability(typeof data.availability === 'string' ? JSON.parse(data.availability) : data.availability);
+      console.log("entrei")
+    } catch (error) {
+      console.error('Erro ao logar:', error);
+      Toast.show({
+        type: 'error',
+        text1: 'Error in login',
+        text2: 'Contact your administrator',
+      });
+    } finally {
+
+    }
+  }
 
   useEffect(() => {
-    async function fetchData() {
-      try {
-        const response = await api.post('/mobile/users/dados');
-        const data = response.data.Data
-        console.log("data", data)
-        setProfile(data);
-        setProfession(data.profession);
-        setName(data.name);
-        setSalaryRange(data.salary_range);
-        setExperienceTime(data.experience_time);
-        setDescription(data.description);
-      } catch (error) {
-        console.error('Erro ao logar:', error);
-        Toast.show({
-          type: 'error',
-          text1: 'Error in login',
-          text2: 'Contact your administrator',
-        });
-      } finally {
-
-      }
-    }
     fetchData();
   }, []);
 
-  // async function fetchData() {
-  //   try {
-  //     const response = await api.post('/mobile/users/dados');
-  //     const data = response.data.Data
-  //     console.log("data", data)
-  //     setProfile(data);
-  //     setProfession(data.profession);
-  //     setName(data.name);
-  //     setSalaryRange(data.salary_range);
-  //     setExperienceTime(data.experience_time);
-  //     setDescription(data.description);
-  //     setAvailability(data.availability);
-  //   } catch (error) {
-  //     console.error('Erro ao logar:', error);
-  //     Toast.show({
-  //       type: 'error',
-  //       text1: 'Error in login',
-  //       text2: 'Contact your administrator',
-  //     });
-  //   } finally {
-
-  //   }
-  // }
-
   const handleSaveProfile = async () => {
     try {
+      let base64Image = null;
+      let fileType = null;
+      if (avatarUri && avatarUri.startsWith('file://')) {
+        const fileName = avatarUri.split('/').pop();
+        fileType = fileName.split('.').pop();
+        base64Image = await FileSystem.readAsStringAsync(avatarUri, { encoding: FileSystem.EncodingType.Base64 });
+      }
 
       const payload = {
+        ...(base64Image && { imagem_base64: `data:image/${fileType};base64,${base64Image}` }),
         name,
         salary_range,
         experience_time,
@@ -99,16 +114,20 @@ const ProfileScreen = () => {
         email: profile?.email,
         login: profile?.email,
         days_of_week: JSON.stringify(selectedDays),
-        id: profile?.id,
-        user_id: profile?.user_id,
+        id: String(profile?.id),
+        user_id: String(profile?.user_id),
       };
 
       console.log("payload", payload)
 
-      const response = await api.post('/mobile/users/update', payload);
-      console.log("response", response.data)
+      const response = await api.post('/mobile/users/update', payload, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      console.log("response", response.data);
 
-      if(response.data.Status !== 1) {
+      if (response.data.Status !== 1) {
         Toast.show({
           type: 'error',
           text1: 'Erro ao atualizar perfil!',
@@ -124,7 +143,9 @@ const ProfileScreen = () => {
       });
 
       setIsEditing(false);
-      // await fetchData();
+      setAvatarUri(null); // Limpa avatarUri para garantir que a imagem do banco será usada
+      fetchData(); // Recarrega os dados atualizados
+
     } catch (error) {
       console.error('Erro ao atualizar perfil:', error);
       Toast.show({
@@ -135,111 +156,137 @@ const ProfileScreen = () => {
     }
   };
 
+  const imageUrl = profile?.imagem
+    ? `${profile.imagem}?t=${new Date().getTime()}`
+    : undefined;
 
   return (
     <ScrollView contentContainerStyle={[styles.container, { paddingTop: insets.top }]}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => setIsEditing(!isEditing)} style={styles.iconButton}><Text>✏️</Text></TouchableOpacity>
-        <Image
-          source={{ uri: 'https://i.imgur.com/B0oV4Ju.png' }} // Substitua com sua imagem
-          style={styles.avatar}
-        />
-        <TouchableOpacity style={styles.iconButton}><Text>☰</Text></TouchableOpacity>
-      </View>
-
       {isEditing ? (
-        <View style={styles.inputWrapper}>
-          <TextInput placeholder="Name" placeholderTextColor="black" value={name} onChangeText={setName} style={styles.input} />
+        <View style={styles.header}>
+          <TouchableOpacity onPress={pickImage} style={styles.iconButton}>
+            <Text>🖼️</Text>
+          </TouchableOpacity>
+          {profile && (
+            <Image
+              source={{ uri: avatarUri || imageUrl }}
+              style={styles.avatar}
+            />
+          )}
+          <TouchableOpacity onPress={() => setIsEditing(!isEditing)} style={styles.iconButton}>
+            <Text>✏️</Text>
+          </TouchableOpacity>
         </View>
       ) : (
-        <Text style={styles.text}>{name}</Text>
-      )}
-
-
-      {/* <Text style={styles.progressText}>Profile 80% complete</Text>
-      <View style={styles.progressBar}>
-        <View style={styles.progressFill} />
-      </View> */}
-
-      {isEditing ? (
-        <View style={styles.inputWrapper}>
-          <TextInput
-            value={salary_range}
-            placeholder="Salary Range"
-            placeholderTextColor="black"
-            onChangeText={setSalaryRange}
-            style={styles.input}
-          />
-        </View>
-      ) : (
-        <View style={styles.section}>
-          <Text style={styles.label}>Salary Range:</Text>
-          <Text style={styles.text}>{profile?.salary_range}</Text>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => setIsEditing(!isEditing)} style={styles.iconButton}>
+            <Text>✏️</Text>
+          </TouchableOpacity>
+          {imageUrl && (
+            <Image
+              source={{ uri: imageUrl }}
+              style={styles.avatar}
+            />
+          )}
         </View>
       )}
 
+      {
+        isEditing ? (
+          <View style={styles.inputWrapper}>
+            <TextInput placeholder="Name" placeholderTextColor="black" value={name} onChangeText={setName} style={styles.input} />
+          </View>
+        ) : (
+          <View style={styles.section}>
+            <Text style={styles.label}>Name:</Text>
+            <Text style={styles.text}>{profile?.name}</Text>
+          </View>
+        )
+      }
 
-      {isEditing ? (
-        <View style={styles.inputWrapper}>
-          <TextInput
-            value={experience_time}
-            placeholder='Experience Time'
-            placeholderTextColor={"black"}
-            onChangeText={setExperienceTime}
-            style={styles.input}
-          />
-        </View>
+      {
+        isEditing ? (
+          <View style={styles.inputWrapper}>
+            <TextInput
+              value={salary_range}
+              placeholder="Salary Range"
+              placeholderTextColor="black"
+              onChangeText={setSalaryRange}
+              style={styles.input}
+            />
+          </View>
+        ) : (
+          <View style={styles.section}>
+            <Text style={styles.label}>Salary Range:</Text>
+            <Text style={styles.text}>{profile?.salary_range}</Text>
+          </View>
+        )
+      }
 
-      ) : (
-        <View style={styles.section}>
-          <Text style={styles.label}>Experience Time:</Text>
-          <Text style={styles.text}>{profile?.experience_time}</Text>
-        </View>
-      )}
+      {
+        isEditing ? (
+          <View style={styles.inputWrapper}>
+            <TextInput
+              value={experience_time}
+              placeholder='Experience Time'
+              placeholderTextColor={"black"}
+              onChangeText={setExperienceTime}
+              style={styles.input}
+            />
+          </View>
 
-      {isEditing ? (
-        <View style={styles.inputWrapper}>
-          <TextInput
-            placeholder='Profession'
-            placeholderTextColor={"black"}
-            value={profession}
-            onChangeText={setProfession}
-            style={styles.text}
-          />
-        </View>
+        ) : (
+          <View style={styles.section}>
+            <Text style={styles.label}>Experience Time:</Text>
+            <Text style={styles.text}>{profile?.experience_time}</Text>
+          </View>
+        )
+      }
 
-      ) : (
-        <View style={styles.section}>
-          <Text style={styles.label}>Professional Area:</Text>
-          <Text style={styles.text}>{profile?.profession}</Text>
-        </View>
-      )}
+      {
+        isEditing ? (
+          <View style={styles.inputWrapper}>
+            <TextInput
+              placeholder='Profession'
+              placeholderTextColor={"black"}
+              value={profession}
+              onChangeText={setProfession}
+              style={styles.text}
+            />
+          </View>
 
-      {isEditing ? (
-        <View style={styles.inputWrapper}>
-          <TextInput
-            placeholder='More Information:'
-            placeholderTextColor={"black"}
-            value={description}
-            onChangeText={setDescription}
-            style={styles.text}
-          />
-        </View>
+        ) : (
+          <View style={styles.section}>
+            <Text style={styles.label}>Professional Area:</Text>
+            <Text style={styles.text}>{profile?.profession}</Text>
+          </View>
+        )
+      }
 
-      ) : (
-        <View style={styles.section}>
-          <Text style={styles.label}>More Information:</Text>
-          <Text style={styles.text}>{profile?.description}</Text>
-        </View>
-      )}
+      {
+        isEditing ? (
+          <View style={styles.inputWrapper}>
+            <TextInput
+              placeholder='More Information:'
+              placeholderTextColor={"black"}
+              value={description}
+              onChangeText={setDescription}
+              style={styles.text}
+            />
+          </View>
 
-      {/* <TouchableOpacity>
-        <Text style={styles.link}>Syndicate verification</Text>
-      </TouchableOpacity> */}
+        ) : (
+          <View style={styles.section}>
+            <Text style={styles.label}>More Information:</Text>
+            <Text style={styles.text}>{profile?.description}</Text>
+          </View>
+        )
+      }
 
       <View style={styles.daysRow}>
         {weekDays.map((day, i) => (
           <TouchableOpacity
+            disabled={!isEditing}
             key={i}
             style={[
               styles.dayBox,
@@ -263,24 +310,26 @@ const ProfileScreen = () => {
         <Text style={styles.label}>Availability</Text>
         <View style={styles.availabilityRow}>
           {Object.entries(availability).map(([slot, isSelected], index) => (
-            <TouchableOpacity key={index} style={styles.availBox} onPress={() => toggleSlot(slot)}>
+            <TouchableOpacity disabled={!isEditing} key={index} style={styles.availBox} onPress={() => toggleSlot(slot)}>
               <View style={[styles.checkbox, isSelected && styles.checkboxChecked]} />
               <Text>{slot}</Text>
             </TouchableOpacity>
           ))}
         </View>
       </View>
-      {isEditing && (
-        <TouchableOpacity onPress={handleSaveProfile} style={styles.loginButton}>
-          {loading ? (
-            <ActivityIndicator size="large" style={{ flex: 1 }} color="white" animating={true}></ActivityIndicator>
-          ) : (
-            <Text style={styles.loginText}> Registrar</Text>
-          )}
+      {
+        isEditing && (
+          <TouchableOpacity onPress={handleSaveProfile} style={styles.loginButton}>
+            {loading ? (
+              <ActivityIndicator size="large" style={{ flex: 1 }} color="white" animating={true}></ActivityIndicator>
+            ) : (
+              <Text style={styles.loginText}> Registrar</Text>
+            )}
 
-        </TouchableOpacity>
-      )}
-    </ScrollView>
+          </TouchableOpacity>
+        )
+      }
+    </ScrollView >
   );
 };
 
@@ -316,6 +365,7 @@ const styles = StyleSheet.create({
   },
   iconButton: {
     padding: wp('2%'),
+    backgroundColor: '#1DBFFF',
   },
   loginButton: {
     width: '100%',

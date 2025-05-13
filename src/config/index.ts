@@ -1,7 +1,8 @@
 import axios from 'axios';
 import { getToken } from '../services/auth';
 
-const URL_API = 'https://homolog.bridgein.ca/api';
+export const URL_API = 'https://homolog.bridgein.ca/api';
+export const URL_API_FILE = 'https://homolog.bridgein.ca/';
 
 const api = axios.create({
  baseURL: URL_API,

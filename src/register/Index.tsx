@@ -90,7 +90,7 @@ const Login: React.FC = ({ navigation }) => {
     console.log("payload", payload)
     try {
       const response = await api.post('/mobile/users/insert', payload);
-      console.log("response", response.data)
+      console.log("response", response)
       const data = response.data;
 
       if (data.Status === 1) {
