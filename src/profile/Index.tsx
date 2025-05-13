@@ -27,6 +27,7 @@ const ProfileScreen = () => {
   const weekDays = ['Sun', 'M', 'Tue', 'W', 'Thu', 'F', 'Sat'];
   const [loading, setLoading] = useState(false);
   const [avatarUri, setAvatarUri] = useState(null);
+  const [imageVersion, setImageVersion] = useState(Date.now());
 
   useEffect(() => {
     (async () => {
@@ -66,14 +67,14 @@ const ProfileScreen = () => {
     try {
       const response = await api.post('/mobile/users/dados');
       const data = response.data.Data
-
+      
       setProfile(data);
       setProfession(data.profession);
       setName(data.name);
       setSalaryRange(data.salary_range);
       setExperienceTime(data.experience_time);
       setDescription(data.description);
-      setAvatarUri(null); // Limpa avatarUri para garantir que a imagem do banco será usada
+      setAvatarUri(data?.imagem ? `${data.imagem}?v=${Date.now()}` : null); // Atualiza avatarUri com a imagem do banco e parâmetro para evitar cache
       setSelectedDays(data.days_of_week ? JSON.parse(data.days_of_week) : []);
       setAvailability(typeof data.availability === 'string' ? JSON.parse(data.availability) : data.availability);
       console.log("entrei")
@@ -143,7 +144,7 @@ const ProfileScreen = () => {
       });
 
       setIsEditing(false);
-      setAvatarUri(null); // Limpa avatarUri para garantir que a imagem do banco será usada
+      setAvatarUri(profile?.imagem ? `${profile.imagem}?v=${Date.now()}` : null); // Atualiza avatarUri com a imagem do banco e parâmetro para evitar cache
       fetchData(); // Recarrega os dados atualizados
 
     } catch (error) {
@@ -156,35 +157,32 @@ const ProfileScreen = () => {
     }
   };
 
-  const imageUrl = profile?.imagem
-    ? `${profile.imagem}?t=${new Date().getTime()}`
-    : undefined;
 
   return (
     <ScrollView contentContainerStyle={[styles.container, { paddingTop: insets.top }]}>
       {isEditing ? (
         <View style={styles.header}>
           <TouchableOpacity onPress={pickImage} style={styles.iconButton}>
-            <Text>🖼️</Text>
+            <Text style={{fontSize: 24}}>🖼️</Text>
           </TouchableOpacity>
-          {profile && (
+          {avatarUri && (
             <Image
-              source={{ uri: avatarUri || imageUrl }}
+              source={{ uri: avatarUri }}
               style={styles.avatar}
             />
           )}
           <TouchableOpacity onPress={() => setIsEditing(!isEditing)} style={styles.iconButton}>
-            <Text>✏️</Text>
+            <Text style={{fontSize: 24}}>✏️</Text>
           </TouchableOpacity>
         </View>
       ) : (
         <View style={styles.header}>
           <TouchableOpacity onPress={() => setIsEditing(!isEditing)} style={styles.iconButton}>
-            <Text>✏️</Text>
+            <Text style={{fontSize: 24}}>✏️</Text>
           </TouchableOpacity>
-          {imageUrl && (
+          {avatarUri && (
             <Image
-              source={{ uri: imageUrl }}
+              source={{ uri: avatarUri }}
               style={styles.avatar}
             />
           )}
@@ -251,7 +249,7 @@ const ProfileScreen = () => {
               placeholderTextColor={"black"}
               value={profession}
               onChangeText={setProfession}
-              style={styles.text}
+              style={styles.input}
             />
           </View>
 
@@ -312,7 +310,7 @@ const ProfileScreen = () => {
           {Object.entries(availability).map(([slot, isSelected], index) => (
             <TouchableOpacity disabled={!isEditing} key={index} style={styles.availBox} onPress={() => toggleSlot(slot)}>
               <View style={[styles.checkbox, isSelected && styles.checkboxChecked]} />
-              <Text>{slot}</Text>
+              <Text style={{width: '100%'}}>{slot}</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -410,6 +408,7 @@ const styles = StyleSheet.create({
   },
   section: {
     marginVertical: hp('1.5%'),
+    width: '100%',
   },
   label: {
     fontWeight: 'bold',
@@ -469,12 +468,15 @@ const styles = StyleSheet.create({
   availabilityRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
+    width: '100%',
+    justifyContent: 'space-between',
   },
   availBox: {
     flexDirection: 'row',
     alignItems: 'center',
     marginRight: 20,
     marginBottom: 10,
+    width: '20%',
   },
   checkbox: {
     width: 20,
