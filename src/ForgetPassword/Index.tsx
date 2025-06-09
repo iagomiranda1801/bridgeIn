@@ -1,21 +1,26 @@
 // src/screens/LoginScreen.tsx
 
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image, SafeAreaView, ScrollView, Dimensions, ActivityIndicator } from 'react-native';
-import api from '../config/index';
 import Toast from 'react-native-toast-message';
-import { login } from '../services/auth';
 import { RFValue } from 'react-native-responsive-fontsize';
-import { TextInput } from 'react-native-paper';
+import { NavigationProp, ParamListBase } from "@react-navigation/native";
+import { Text, TouchableOpacity, StyleSheet, Image, SafeAreaView, ScrollView, Dimensions, ActivityIndicator } from 'react-native';
+
+import api from '../config/index';
 import InputLabel from '../components/InputLabel';
+import InputTopLabel from '../components/InputTopLabel';
 
 const { width, height } = Dimensions.get('window');
-const ForgetPassowrd: React.FC = ({ navigation }) => {
+
+type ForgetPasswordProps = {
+  navigation: NavigationProp<ParamListBase>;
+};
+
+const ForgetPassword: React.FC<ForgetPasswordProps> = ({ navigation }) => {
   const [email, setEmail] = useState('');
-  const [senha, setSenha] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleLogin = async () => {
+  const handleRecoveryPassword = async () => {
     setLoading(true)
 
     if (!email) {
@@ -25,17 +30,18 @@ const ForgetPassowrd: React.FC = ({ navigation }) => {
         text2: 'Fill in all the fields',
         position: 'top',
       });
+
       setLoading(false)
-      setTimeout(() => {
-        navigation.navigate('Login');
-      }, 2000);
+
       return;
     }
     console.log("email", email)
+
     const payload = {
       email: email
     };
     console.log("payload", payload)
+
     try {
       const response = await api.post('/mobile/password/forget', payload);
       console.log("response", response.data)
@@ -65,38 +71,41 @@ const ForgetPassowrd: React.FC = ({ navigation }) => {
     }
   }
 
-
-
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContainer} keyboardShouldPersistTaps="handled">
         <Image source={require('../../assets/images/login.png')} style={styles.logo} resizeMode="contain" />
 
-        <InputLabel
+        <Text style={styles.instructionText}>Type your email and we will help you to reset your password.</Text>
+
+        <InputTopLabel
           label="Email"
           value={email}
-          placeholderText="Type your email here"
           onChangeText={setEmail}
-          secureTextEntry={false} />
+          placeholder="Type your email here"
+          />
 
-        <TouchableOpacity onPress={handleLogin} style={styles.loginButton}>
+        <TouchableOpacity onPress={handleRecoveryPassword} style={styles.sendRecorevyButton}>
           {loading ? (
             <ActivityIndicator size="large" style={{ flex: 1 }} color="white" animating={true}></ActivityIndicator>
           ) : (
-            <Text style={styles.loginText}> Send</Text>
+            <Text style={styles.recoveryText}>Send</Text>
           )}
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => navigation.navigate('Login')} style={styles.registerButton}>
-          <Text style={styles.registerText}>Return</Text>
-        </TouchableOpacity>
-
       </ScrollView>
+      
+      <TouchableOpacity 
+        onPress={() => navigation.navigate('Login')} 
+        style={styles.registerButton}
+      >
+        <Text style={styles.registerText}>Return</Text>
+      </TouchableOpacity>
     </SafeAreaView>
   );
 }
 
-export default ForgetPassowrd;
+export default ForgetPassword;
 
 const styles = StyleSheet.create({
   container: {
@@ -104,8 +113,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#021E40',
   },
   forgotButton: {
-    marginLeft: 'auto',
     marginTop: -15,
+    marginLeft: 'auto',
   },
   scrollContainer: {
     padding: 20,
@@ -113,75 +122,84 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   logo: {
+    marginBottom: 30,
     width: width * 0.8,
     height: height * 0.25,
-    marginBottom: 30,
   },
   input: {
     width: '100%',
-    // paddingVertical: Platform.OS === 'ios' ? 14 : 10,
-    // paddingHorizontal: 15,
-    fontSize: RFValue(14),
     marginBottom: 15,
+    fontSize: RFValue(14),
   },
   forgotText: {
+    marginBottom: 25,
     color: '#00BFFF',
     fontSize: RFValue(13),
     alignSelf: 'flex-end',
-    marginBottom: 25,
   },
-  loginButton: {
+  sendRecorevyButton: {
+    marginTop: 40,
     width: '100%',
-    backgroundColor: '#1DBFFF',
     borderRadius: 12,
-    paddingVertical: 15,
+    paddingVertical: 12,
     alignItems: 'center',
-    marginBottom: 20,
+    backgroundColor: '#1DBFFF',
   },
-  loginText: {
+  recoveryText: {
     color: '#fff',
-    fontSize: RFValue(16),
     fontWeight: 'bold',
+    fontSize: RFValue(16),
   },
   socialContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
     width: '100%',
     marginBottom: 30,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
   },
   socialButton: {
-    backgroundColor: '#fff',
     width: '48%',
-    paddingVertical: 14,
     borderRadius: 12,
+    paddingVertical: 14,
     alignItems: 'center',
+    backgroundColor: '#fff',
   },
   socialText: {
+    fontWeight: '600',
     color: '#1877F2',
     fontSize: RFValue(14),
-    fontWeight: '600',
   },
   socialTextGoogle: {
     color: '#4285F4',
-    fontSize: RFValue(14),
     fontWeight: '600',
+    fontSize: RFValue(14),
+  },
+  instructionText: {
+    color: '#fff',
+    textAlign: 'center',
+    marginBottom: 20,
+    fontSize: RFValue(16),
+    paddingHorizontal: 20,
   },
   signUpText: {
     color: '#fff',
-    fontSize: RFValue(13),
     marginBottom: 12,
+    fontSize: RFValue(13),
   },
   registerButton: {
+    width: '90%',
     borderWidth: 2,
-    borderColor: '#1DBFFF',
     borderRadius: 12,
     paddingVertical: 12,
-    paddingHorizontal: 30,
+    alignItems: 'center',
+    borderColor: '#1DBFFF',
+    position: 'absolute',
+    bottom: 30,
+    alignSelf: 'center',
   },
   registerText: {
     color: '#1DBFFF',
-    fontSize: RFValue(15),
     fontWeight: 'bold',
+    fontSize: RFValue(15),
   },
 });
 

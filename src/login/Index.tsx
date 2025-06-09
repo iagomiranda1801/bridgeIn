@@ -1,102 +1,140 @@
 // src/screens/LoginScreen.tsx
 
-import React, { useState } from 'react';
-import { View, Text, Platform, PixelRatio, TouchableOpacity, StyleSheet, Image, SafeAreaView, ScrollView, Dimensions } from 'react-native';
-import api from '../config/index';
-import Toast from 'react-native-toast-message';
-import { login } from '../services/auth';
-import { RFValue } from 'react-native-responsive-fontsize';
-import { ActivityIndicator } from 'react-native-paper';
-import InputLabel from '../components/InputLabel';
+import React, { useState } from "react";
+import Toast from "react-native-toast-message";
+import { ActivityIndicator } from "react-native-paper";
+import { RFValue } from "react-native-responsive-fontsize";
+import { NavigationProp, ParamListBase } from "@react-navigation/native";
+import {
+  View,
+  Text,
+  Image,
+  StyleSheet,
+  Dimensions,
+  ScrollView,
+  SafeAreaView,
+  TouchableOpacity,
+} from "react-native";
 
-const { width, height } = Dimensions.get('window');
-const Login: React.FC = ({ navigation }) => {
-  const [email, setEmail] = useState('');
-  const [senha, setSenha] = useState('');
+
+import api from "../config/index";
+import { login } from "../services/auth";
+import InputTopLabel from "../components/InputTopLabel";
+
+
+const { width, height } = Dimensions.get("window");
+
+type LoginProps = {
+  navigation: NavigationProp<ParamListBase>;
+};
+
+const Login: React.FC<LoginProps> = ({ navigation }) => {
+  const [email, setEmail] = useState("");
+  const [senha, setSenha] = useState("");
   const [loading, setLoading] = useState(false);
+
   const handleLogin = async () => {
-    setLoading(true)
+    setLoading(true);
 
     if (!email || !senha) {
       Toast.show({
-        type: 'error',
-        text1: 'Required fields',
-        text2: 'Fill in all the fields',
-        position: 'top',
+        type: "error",
+        position: "top",
+        text1: "Required fields",
+        text2: "Fill in all the fields",
       });
-      setLoading(false)
+      setLoading(false);
       return;
     }
-    console.log("email", email)
+
+    console.log("email", email);
     const payload = {
       login: email,
       password: senha,
     };
-    console.log("payload", payload)
+
+    console.log("payload", payload);
     try {
-      const response = await api.post('/mobile/login', payload);
-      console.log("response", response.data)
+      const response = await api.post("/mobile/login", payload);
+      console.log("response", response.status);
       const data = response.data;
 
       if (data.Status === 1) {
         Toast.show({
-          type: 'success',
-          text1: 'Login ready to go!',
+          type: "success",
+          text1: "Login ready to go!",
         });
-        console.log("data", data.Token)
+
+        console.log("data", data.Token);
         login(data.Token);
         setTimeout(() => {
-          navigation.navigate('Dashboard');
+          navigation.navigate("Dashboard");
         }, 1500);
       } else {
         Toast.show({
-          type: 'error',
-          text1: 'Error in login',
+          type: "error",
+          text1: "Error in login",
           text2: data.Mensagem,
         });
       }
     } catch (error) {
-      console.error('Erro ao logar:', error);
+      console.error("Erro ao logar:", error);
       Toast.show({
-        type: 'error',
-        text1: 'Error in login',
-        text2: 'Contact your administrator',
+        type: "error",
+        text1: "Error in login",
+        text2: "Contact your administrator",
       });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContainer} keyboardShouldPersistTaps="handled">
-        <Image source={require('../../assets/images/login.png')} style={styles.logo} resizeMode="contain" />
-        <InputLabel
-          label="Email"
+      <ScrollView
+        contentContainerStyle={styles.scrollContainer}
+        keyboardShouldPersistTaps="handled"
+      >
+        <Image
+          source={require("../../assets/images/login.png")}
+          style={styles.logo}
+          resizeMode="contain"
+        />
+
+        <InputTopLabel
+          label="email"
           value={email}
           onChangeText={setEmail}
-          placeholderText="Type your email here"
-          secureTextEntry={false} />
+          placeholder="Type your email here"
+        />
 
-        <InputLabel
-          label="Password"
+        <InputTopLabel
           value={senha}
-          placeholderText="Type your password here"
+          label="password"
+          secureTextEntry
           onChangeText={setSenha}
-          secureTextEntry={true} />
+          placeholder="Type your password here"
+        />
 
-        <View style={{width: '100%', marginBottom: 20}}>
-          <TouchableOpacity onPress={() => navigation.navigate('ForgetPassword')}>
+        <View style={{ width: "100%", marginBottom: 10, alignItems: "flex-end" }}>
+          <TouchableOpacity
+            onPress={() => navigation.navigate("ForgetPassword")}
+          >
             <Text style={styles.forgotText}>Forgot your password?</Text>
           </TouchableOpacity>
         </View>
 
         <TouchableOpacity onPress={handleLogin} style={styles.loginButton}>
           {loading ? (
-            <ActivityIndicator size="large" style={{ flex: 1 }} color="white" animating={true}></ActivityIndicator>
+            <ActivityIndicator
+              size="large"
+              color="white"
+              animating={true}
+              style={{ flex: 1 }}
+            ></ActivityIndicator>
           ) : (
-            <Text style={styles.loginText}> Login</Text>
+            <Text style={styles.loginText}>Login</Text>
           )}
-
         </TouchableOpacity>
 
         <View style={styles.socialContainer}>
@@ -108,12 +146,18 @@ const Login: React.FC = ({ navigation }) => {
           </TouchableOpacity>
         </View>
 
+      </ScrollView>
+      
+      <View style={styles.footerContainer}>
         <Text style={styles.signUpText}>New here? Sign up!</Text>
 
-        <TouchableOpacity onPress={() => navigation.navigate('SignUp')} style={styles.registerButton}>
+        <TouchableOpacity
+          onPress={() => navigation.navigate("Register")}
+          style={styles.registerButton}
+        >
           <Text style={styles.registerText}>Register</Text>
         </TouchableOpacity>
-      </ScrollView>
+      </View>
     </SafeAreaView>
   );
 };
@@ -123,84 +167,85 @@ export default Login;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#021E40',
+    backgroundColor: "#021E40",
   },
   scrollContainer: {
     padding: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   logo: {
+    marginBottom: 30,
     width: width * 0.8,
     height: height * 0.25,
-    marginBottom: 30,
-  },
-  input: {
-    width: '100%',
-    // paddingVertical: Platform.OS === 'ios' ? 14 : 10,
-    // paddingHorizontal: 15,
-    fontSize: RFValue(14),
-    marginBottom: 15,
   },
   forgotText: {
-    color: '#00BFFF',
-    fontSize: RFValue(13),
-    alignSelf: 'flex-end',
     marginBottom: 25,
-    width: '100%',
+    color: "#00BFFF",
+    textAlign: "right",
+    fontSize: RFValue(13),
   },
   loginButton: {
-    width: '100%',
-    backgroundColor: '#1DBFFF',
+    width: "100%",
     borderRadius: 12,
-    paddingVertical: 15,
-    alignItems: 'center',
     marginBottom: 20,
+    paddingVertical: 12,
+    alignItems: "center",
+    backgroundColor: "#1DBFFF",
   },
   loginText: {
-    color: '#fff',
+    color: "#fff",
+    fontWeight: "bold",
     fontSize: RFValue(16),
-    fontWeight: 'bold',
   },
   socialContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '100%',
+    width: "100%",
     marginBottom: 30,
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
   socialButton: {
-    backgroundColor: '#fff',
-    width: '48%',
-    paddingVertical: 14,
+    width: "48%",
     borderRadius: 12,
-    alignItems: 'center',
+    paddingVertical: 14,
+    alignItems: "center",
+    backgroundColor: "#fff",
   },
   socialText: {
-    color: '#1877F2',
+    fontWeight: "600",
+    color: "#1877F2",
     fontSize: RFValue(14),
-    fontWeight: '600',
   },
   socialTextGoogle: {
-    color: '#4285F4',
+    color: "#4285F4",
+    fontWeight: "600",
     fontSize: RFValue(14),
-    fontWeight: '600',
+  },
+  footerContainer: {
+    width: "100%",
+    padding: 20,
+    paddingBottom: 30,
+    alignItems: "center",
+    position: "absolute",
+    bottom: 0,
   },
   signUpText: {
-    color: '#fff',
-    fontSize: RFValue(13),
+    color: "#fff",
     marginBottom: 12,
+    fontSize: RFValue(13),
+    textAlign: "center",
   },
   registerButton: {
+    width: "90%",
     borderWidth: 2,
-    borderColor: '#1DBFFF',
     borderRadius: 12,
     paddingVertical: 12,
-    paddingHorizontal: 30,
+    alignItems: "center",
+    borderColor: "#1DBFFF",
   },
   registerText: {
-    color: '#1DBFFF',
+    color: "#1DBFFF",
+    fontWeight: "bold",
     fontSize: RFValue(15),
-    fontWeight: 'bold',
   },
 });
-

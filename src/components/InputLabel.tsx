@@ -1,31 +1,51 @@
 import React, { useState, useEffect } from 'react';
 import {
   View,
-  TextInput,
   Animated,
+  TextInput,
   StyleSheet,
+  StyleProp,
+  ViewStyle,
+  TextStyle,
+  TextInputProps,
   TouchableOpacity,
+  KeyboardTypeOptions,
 } from 'react-native';
+import { Text } from 'react-native';
 import { RFValue } from 'react-native-responsive-fontsize';
 import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
-import { TextInputMask } from 'react-native-masked-text';
-import { Text } from 'react-native';
+import { TextInputMask, TextInputMaskTypeProp, TextInputMaskOptionProp } from 'react-native-masked-text';
 
-  const FloatingLabelInput = ({
-    label,
-    hasError = false,
-    value,
-    onChangeText,
-    placeholderText,
-    inputStyle = {},
-    containerStyle = {},
-    secureTextEntry = false,
-    isMasked = false,
-    maskType = '', // Ex: 'datetime'
-    typeKeyboard = 'text',
-    maskOptions = {}, // Ex: { format: 'DD/MM/YYYY' }
-    ...rest
-  }) => {
+interface FloatingLabelInputProps extends Omit<TextInputProps, 'onChangeText'> {
+  label: string;
+  value: string;
+  hasError?: boolean;
+  isMasked?: boolean;
+  placeholderText?: string;
+  secureTextEntry?: boolean;
+  maskType?: TextInputMaskTypeProp;
+  inputStyle?: StyleProp<TextStyle>;
+  typeKeyboard?: KeyboardTypeOptions;
+  onChangeText: (text: string) => void;
+  containerStyle?: StyleProp<ViewStyle>;
+  maskOptions?: TextInputMaskOptionProp;
+}
+
+const FloatingLabelInput = ({
+  label,
+  value,
+  onChangeText,
+  placeholderText,
+  inputStyle = {},
+  hasError = false,
+  isMasked = false,
+  maskOptions = {},
+  containerStyle = {},
+  maskType = 'custom',
+  secureTextEntry = false,
+  typeKeyboard = 'default',
+  ...rest
+}: FloatingLabelInputProps) => {
     const [isFocused, setIsFocused] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const animatedIsFocused = new Animated.Value(value ? 1 : 0);
@@ -38,11 +58,12 @@ import { Text } from 'react-native';
       }).start();
     }, [isFocused, value]);
 
-    const labelStyle = {
-      position: 'absolute',
+    const labelStyle: Animated.WithAnimatedObject<TextStyle> = {
       left: 12,
       zIndex: 999,
       marginTop: -10,
+      color: '#FFFFFF',
+      position: 'absolute' as const,
       top: animatedIsFocused.interpolate({
         inputRange: [0, 1],
         outputRange: [18, 4],
@@ -51,7 +72,6 @@ import { Text } from 'react-native';
         inputRange: [0, 1],
         outputRange: [16, 12],
       }),
-      color: '#FFFFFF',
     };
 
     const togglePasswordVisibility = () => {
@@ -64,16 +84,16 @@ import { Text } from 'react-native';
         <View style={[styles.inputWrapper, hasError && { borderColor: 'red' }]}>
           {isMasked ? (
             <TextInputMask
+              value={value}
               type={maskType}
               options={maskOptions}
-              value={value}
               onChangeText={onChangeText}
+              keyboardType={typeKeyboard}
               placeholder={placeholderText}
               placeholderTextColor="#ffffff"
               style={[styles.input, inputStyle]}
               onFocus={() => setIsFocused(true)}
               onBlur={() => setIsFocused(false)}
-              keyboardType={typeKeyboard}
               {...rest}
             />
           ) : (
@@ -82,13 +102,14 @@ import { Text } from 'react-native';
               onChangeText={onChangeText}
               placeholder={placeholderText}
               placeholderTextColor="#ffffff"
-              style={[styles.input, inputStyle, hasError && { borderColor: 'red' }]}
-              secureTextEntry={secureTextEntry && !showPassword}
               onFocus={() => setIsFocused(true)}
               onBlur={() => setIsFocused(false)}
+              secureTextEntry={secureTextEntry && !showPassword}
+              style={[styles.input, inputStyle, hasError && { borderColor: 'red' }]}
               {...rest}
             />
           )}
+
           {secureTextEntry && (
             <TouchableOpacity style={styles.icon} onPress={togglePasswordVisibility}>
               <Ionicons
@@ -98,6 +119,7 @@ import { Text } from 'react-native';
               />
             </TouchableOpacity>
           )}
+
         </View>
         {hasError && (
           <View style={{ marginTop: 5 }}>

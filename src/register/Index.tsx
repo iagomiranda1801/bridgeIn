@@ -1,15 +1,22 @@
 // src/screens/LoginScreen.tsx
 
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image, SafeAreaView, ScrollView, Dimensions, ActivityIndicator } from 'react-native';
-import api from '../config/index';
 import Toast from 'react-native-toast-message';
 import { RFValue } from 'react-native-responsive-fontsize';
-import InputLabel from '../components/InputLabel';
+import { NavigationProp, ParamListBase } from "@react-navigation/native";
+import { View, Text, TouchableOpacity, StyleSheet, Image, SafeAreaView, ScrollView, Dimensions, ActivityIndicator } from 'react-native';
+
+import api from '../config/index';
 import LoadingScreen from '../loading/Index';
+import InputLabel from '../components/InputLabel';
 
 const { width, height } = Dimensions.get('window');
-const Login: React.FC = ({ navigation }) => {
+
+type RegisterProps = {
+  navigation: NavigationProp<ParamListBase>;
+};
+
+const Register: React.FC<RegisterProps> = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
@@ -246,7 +253,6 @@ const Login: React.FC = ({ navigation }) => {
           placeholderText="Enter your postal code (A1B-2A1)"
           secureTextEntry={false}
           isMasked={true}
-          typeKeyboard="text"
           maskType="custom"
           maskOptions={{ mask: 'A9A 9A9' }}
         />
@@ -350,7 +356,7 @@ const Login: React.FC = ({ navigation }) => {
   );
 }
 
-export default Login;
+export default Register;
 
 const styles = StyleSheet.create({
   container: {

@@ -1,29 +1,28 @@
 // App.js
 import React, { useState, useEffect } from 'react';
+import Toast, { BaseToast, BaseToastProps } from 'react-native-toast-message';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import Login from '../login/Index';
-import SignUp from '../register/Index';
-import ForgetPassowrd from '../ForgetPassword/Index';
-import Toast from 'react-native-toast-message';
+import Register from '../register/Index';
 import Drawer from '../navigation/drawer';
-import { BaseToast } from 'react-native-toast-message';
 import LogoutScreen from '../logout/logout';
 import ProfileScreen from '../profile/Index';
-import Dashboard from '../dashboard';
 import LoadingScreen from '../loading/Index';
+import ForgetPassword from '../ForgetPassword/Index';
+
 const Stack = createNativeStackNavigator();
 
 const toastConfig = {
-  success: (props) => (
+  success: (props: BaseToastProps) => (
     <BaseToast
       {...props}
       style={{
-        borderLeftColor: '#4BB543',
+        width: '90%',
+        marginBottom: 60,
         borderRadius: 10,
         backgroundColor: '#f0fff0',
-        marginBottom: 60,
-        width: '90%'
+        borderLeftColor: '#4BB543',
       }}
       contentContainerStyle={{ paddingHorizontal: 15, width: '90%' }}
       text1Style={{
@@ -38,15 +37,15 @@ const toastConfig = {
     />
   ),
 
-  error: (props) => (
+  error: (props: BaseToastProps) => (
     <BaseToast
       {...props}
       style={{
-        borderLeftColor: '#D32F2F',
+        width: '100%',
+        marginBottom: 60,
         borderRadius: 10,
         backgroundColor: '#fff0f0',
-        marginBottom: 60,
-        width: '100%'
+        borderLeftColor: '#D32F2F',
       }}
       contentContainerStyle={{ paddingHorizontal: 15 }}
       text1Style={{
@@ -74,8 +73,9 @@ export default function App() {
 
     return () => clearTimeout(timer);
   }, []);
+
   if (isLoading) return <LoadingScreen />;
-  
+
   return (
     <>
       <Stack.Navigator initialRouteName="Login" screenOptions={{ headerShown: false }}>
@@ -83,8 +83,8 @@ export default function App() {
         <Stack.Screen name="Profile" component={ProfileScreen} options={{ headerShown: true, title: 'Perfil' }} />
         <Stack.Screen name="Logout" component={LogoutScreen} />
         <Stack.Screen name="Dashboard" component={Drawer} />
-        <Stack.Screen name="SignUp" component={SignUp} />
-        <Stack.Screen name="ForgetPassowrd" component={ForgetPassowrd} />
+        <Stack.Screen name="Register" component={Register} />
+        <Stack.Screen name="ForgetPassword" component={ForgetPassword} />
       </Stack.Navigator>
       <Toast config={toastConfig} />
     </>
