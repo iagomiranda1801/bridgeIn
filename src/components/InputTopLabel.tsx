@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, StyleSheet, Platform } from 'react-native';
 import { TextInput, Text } from 'react-native-paper';
 import { RFValue } from 'react-native-responsive-fontsize';
+import MaskInput from 'react-native-mask-input';
 
 interface InputTopLabelProps {
   label: string;
@@ -13,6 +14,7 @@ interface InputTopLabelProps {
   onChangeText: (text: string) => void;
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
   keyboardType?: 'default' | 'numeric' | 'email-address' | 'phone-pad';
+  mask?: (string | RegExp)[];
 }
 
 const InputTopLabel = ({
@@ -25,7 +27,9 @@ const InputTopLabel = ({
   secureTextEntry = false,
   autoCapitalize = 'none',
   keyboardType = 'default',
+  mask,
 }: InputTopLabelProps) => {
+  const [passwordVisible, setPasswordVisible] = useState(false);
   return (
     <View style={styles.container}>
       <View style={styles.inputWrapper}>
@@ -33,27 +37,56 @@ const InputTopLabel = ({
           value={value}
           error={error}
           mode="outlined"
+          multiline={false}
+          numberOfLines={1}
           disabled={disabled}
           style={styles.input}
           outlineColor="#FFFFFF"
           placeholder={placeholder}
-          onChangeText={onChangeText}
           keyboardType={keyboardType}
           activeOutlineColor="#FFFFFF"
           autoCapitalize={autoCapitalize}
-          secureTextEntry={secureTextEntry}
+          contentStyle={styles.contentStyle}
           outlineStyle={styles.outlineStyle}
           label={<Text style={styles.label}>{label}</Text>}
-          contentStyle={styles.contentStyle}
-          multiline={false}
-          numberOfLines={1}
+          secureTextEntry={secureTextEntry && !passwordVisible}
+          right={secureTextEntry ? (
+            <TextInput.Icon
+              icon={passwordVisible ? 'eye-off' : 'eye'}
+              onPress={() => setPasswordVisible(!passwordVisible)}
+              color="#B2BCC6"
+            />
+          ) : undefined}
           theme={{
             colors: {
-              onSurfaceVariant: '#B2BCC6',
               text: '#B2BCC6',
               placeholder: '#B2BCC6',
+              onSurfaceVariant: '#B2BCC6',
             },
           }}
+          render={props => (
+            mask ? (
+              <MaskInput
+                {...props}
+                mask={mask}
+                value={value}
+                style={[props.style, styles.contentStyle]}
+                onChangeText={(masked, unmasked) => {
+                  onChangeText(masked);
+                }}
+              />
+            ) : (
+              <View style={props.style}>
+                <MaskInput
+                  {...props}
+                  value={value}
+                  mask={undefined}
+                  style={[props.style, styles.contentStyle]}
+                  onChangeText={(text) => onChangeText(text)}
+                />
+              </View>
+            )
+          )}
         />
       </View>
     </View>
