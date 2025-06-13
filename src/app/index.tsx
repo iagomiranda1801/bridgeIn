@@ -86,7 +86,7 @@ export default function App() {
         <Stack.Screen name="Register" component={Register} />
         <Stack.Screen name="ForgetPassword" component={ForgetPassword} />
       </Stack.Navigator>
-      <Toast config={toastConfig} />
+      <Toast config={toastConfig} topOffset={50} />
     </>
 
   );

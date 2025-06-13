@@ -87,7 +87,7 @@ const ForgetPassword: React.FC<ForgetPasswordProps> = ({ navigation }) => {
 
         <TouchableOpacity onPress={handleRecoveryPassword} style={styles.sendRecorevyButton}>
           {loading ? (
-            <ActivityIndicator size="large" style={{ flex: 1 }} color="white" animating={true}></ActivityIndicator>
+            <ActivityIndicator size="small" color="white" animating={true}/>
           ) : (
             <Text style={styles.recoveryText}>Send</Text>
           )}

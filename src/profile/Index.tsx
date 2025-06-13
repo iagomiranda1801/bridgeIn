@@ -66,6 +66,7 @@ const ProfileScreen = () => {
   async function fetchData() {
     try {
       const response = await api.post('/mobile/users/dados');
+      console.log("🚀 ~ fetchData ~ response:", response)
       const data = response.data.Data
       
       setProfile(data);

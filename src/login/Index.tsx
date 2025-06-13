@@ -18,7 +18,7 @@ import {
 
 
 import api from "../config/index";
-import { login } from "../services/auth";
+import { useAuth } from "../hooks";
 import InputTopLabel from "../components/InputTopLabel";
 
 
@@ -31,11 +31,13 @@ type LoginProps = {
 const Login: React.FC<LoginProps> = ({ navigation }) => {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { signIn, loading: authLoading } = useAuth();
+  
+  // Usando uma variável comum para evitar loops infinitos
+  const loading = isSubmitting || authLoading;
 
   const handleLogin = async () => {
-    setLoading(true);
-
     if (!email || !senha) {
       Toast.show({
         type: "error",
@@ -43,38 +45,38 @@ const Login: React.FC<LoginProps> = ({ navigation }) => {
         text1: "Required fields",
         text2: "Fill in all the fields",
       });
-      setLoading(false);
       return;
     }
 
-    console.log("email", email);
     const payload = {
       login: email,
       password: senha,
     };
 
-    console.log("payload", payload);
     try {
+      setIsSubmitting(true);
       const response = await api.post("/mobile/login", payload);
-      console.log("response", response.status);
       const data = response.data;
 
       if (data.Status === 1) {
+        // Usando o hook useAuth para salvar os dados de autenticação
+        await signIn(data);
+        
         Toast.show({
           type: "success",
           text1: "Login ready to go!",
         });
 
-        console.log("data", data.Token);
-        login(data.Token);
+        // Mantém o loading ativo durante a navegação
         setTimeout(() => {
           navigation.navigate("Dashboard");
-        }, 1500);
+        }, 1000);
       } else {
+        setIsSubmitting(false);
         Toast.show({
           type: "error",
           text1: "Error in login",
-          text2: data.Mensagem,
+          text2: data.Menssage || "Authentication failed",
         });
       }
     } catch (error) {
@@ -84,8 +86,7 @@ const Login: React.FC<LoginProps> = ({ navigation }) => {
         text1: "Error in login",
         text2: "Contact your administrator",
       });
-    } finally {
-      setLoading(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -127,11 +128,10 @@ const Login: React.FC<LoginProps> = ({ navigation }) => {
         <TouchableOpacity onPress={handleLogin} style={styles.loginButton}>
           {loading ? (
             <ActivityIndicator
-              size="large"
+              size="small"
               color="white"
               animating={true}
-              style={{ flex: 1 }}
-            ></ActivityIndicator>
+            />
           ) : (
             <Text style={styles.loginText}>Login</Text>
           )}

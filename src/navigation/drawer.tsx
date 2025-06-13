@@ -1,131 +1,292 @@
-import React from 'react';
-import { createDrawerNavigator, DrawerContentScrollView, DrawerItem } from '@react-navigation/drawer';
-import { View, Text, Image, StyleSheet } from 'react-native';
-import Dashboard from '../dashboard/index';
-import ProfileScreen from '../profile/Index';
-import LogoutScreen from '../logout/logout';
-// Importe seus ícones (exemplo com react-native-vector-icons)
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import React from "react";
+import {
+  DrawerItem,
+  createDrawerNavigator,
+  DrawerContentScrollView,
+  DrawerContentComponentProps,
+} from "@react-navigation/drawer";
+import Icon from "react-native-vector-icons/MaterialCommunityIcons";
+import { View, Image, StyleSheet, TouchableOpacity, Text } from "react-native";
+
+import Dashboard from "../dashboard/index";
+import LogoutScreen from "../logout/logout";
+import ProfileScreen from "../profile/Index";
 
 const Drawer = createDrawerNavigator();
 
-function CustomDrawerContent(props) {
+const CustomDrawerContent = (props: DrawerContentComponentProps) => {
   return (
-    <DrawerContentScrollView {...props} contentContainerStyle={{ flex: 1, backgroundColor: '#021E40' }}>
+    <DrawerContentScrollView
+      {...props}
+      contentContainerStyle={{ flex: 1, backgroundColor: "#10365F" }}
+    >
       <View style={styles.logoContainer}>
-        <Image source={require('../../assets/images/login.png')} style={styles.logo} resizeMode="contain" />
-        {/* <Text style={styles.logoText}>BridgeIn</Text> */}
+        <Image
+          style={styles.logo}
+          resizeMode="contain"
+          source={require("../assets/extended-logo.png")}
+        />
+        <TouchableOpacity
+          style={styles.closeButton}
+          onPress={() => props.navigation.closeDrawer()}
+        >
+          <Icon name="close" size={24} color="#FFFFFF" />
+        </TouchableOpacity>
       </View>
+
       <DrawerItem
         label="My profile"
-        labelStyle={styles.label}
-        icon={({ color, size }) => <Icon name="account-circle-outline" color="#C2A14A" size={32} style={{ marginLeft: 24 }} />}
         style={styles.menuItem}
-        onPress={() => props.navigation.navigate('Profile')}
+        labelStyle={styles.label}
+        onPress={() => props.navigation.navigate("Profile")}
+        icon={() => (
+          <Icon
+            name="account-circle-outline"
+            color="#A57B2F"
+            size={32}
+            style={{ marginRight: 10 }}
+          />
+        )}
       />
+
       <DrawerItem
         label="Home"
-        labelStyle={styles.label}
-        icon={({ color, size }) => <Icon name="home-outline" color="#C2A14A" size={32} style={{ marginLeft: 24 }} />}
         style={styles.menuItem}
-        onPress={() => props.navigation.navigate('Menu')}
+        labelStyle={styles.label}
+        onPress={() => props.navigation.navigate("Menu")}
+        icon={() => (
+          <Icon
+            name="home-outline"
+            color="#A57B2F"
+            size={32}
+            style={{ marginRight: 10 }}
+          />
+        )}
+      />
+
+      <DrawerItem
+        label="Open Vacancy(In Development)"
+        labelStyle={styles.label}
+        icon={() => (
+          <Icon
+            name="bullhorn-outline"
+            color="#A57B2F"
+            size={32}
+            style={{ marginRight: 10 }}
+          />
+        )}
+        style={styles.menuItem}
+        onPress={() => {
+          /* navegação */
+        }}
       />
       <DrawerItem
-        label="Open Vacancy"
+        label="Send Invite(In Development)"
         labelStyle={styles.label}
-        icon={({ color, size }) => <Icon name="bullhorn-outline" color="#C2A14A" size={32} style={{ marginLeft: 24 }} />}
+        icon={() => (
+          <Icon
+            name="email-outline"
+            color="#A57B2F"
+            size={32}
+            style={{ marginRight: 10 }}
+          />
+        )}
         style={styles.menuItem}
-        onPress={() => {/* navegação */}}
+        onPress={() => {
+          /* navegação */
+        }}
       />
       <DrawerItem
-        label="Send Invite"
+        label="Contracts(In Development)"
         labelStyle={styles.label}
-        icon={({ color, size }) => <Icon name="email-outline" color="#C2A14A" size={32} style={{ marginLeft: 24 }} />}
+        icon={() => (
+          <Icon
+            name="file-document-outline"
+            color="#A57B2F"
+            size={32}
+            style={{ marginRight: 10 }}
+          />
+        )}
         style={styles.menuItem}
-        onPress={() => {/* navegação */}}
+        onPress={() => {
+          /* navegação */
+        }}
       />
       <DrawerItem
-        label="Contracts"
+        label="Applications(In Development)"
         labelStyle={styles.label}
-        icon={({ color, size }) => <Icon name="file-document-outline" color="#C2A14A" size={32} style={{ marginLeft: 24 }} />}
+        icon={() => (
+          <Icon
+            name="clipboard-list-outline"
+            color="#A57B2F"
+            size={32}
+            style={{ marginRight: 10 }}
+          />
+        )}
         style={styles.menuItem}
-        onPress={() => {/* navegação */}}
+        onPress={() => {
+          /* navegação */
+        }}
       />
       <DrawerItem
-        label="Applications"
+        label="Chat(In Development)"
         labelStyle={styles.label}
-        icon={({ color, size }) => <Icon name="clipboard-list-outline" color="#C2A14A" size={32} style={{ marginLeft: 24 }} />}
+        icon={() => (
+          <Icon
+            name="chat-outline"
+            color="#A57B2F"
+            size={32}
+            style={{ marginRight: 10 }}
+          />
+        )}
         style={styles.menuItem}
-        onPress={() => {/* navegação */}}
+        onPress={() => {
+          /* navegação */
+        }}
       />
       <DrawerItem
-        label="Chat"
+        label="Reviews(In Development)"
         labelStyle={styles.label}
-        icon={({ color, size }) => <Icon name="chat-outline" color="#C2A14A" size={32} style={{ marginLeft: 24 }} />}
+        icon={() => (
+          <Icon
+            name="star-outline"
+            color="#A57B2F"
+            size={32}
+            style={{ marginRight: 10 }}
+          />
+        )}
         style={styles.menuItem}
-        onPress={() => {/* navegação */}}
-      />
-      <DrawerItem
-        label="Reviews"
-        labelStyle={styles.label}
-        icon={({ color, size }) => <Icon name="star-outline" color="#C2A14A" size={32} style={{ marginLeft: 24 }} />}
-        style={styles.menuItem}
-        onPress={() => {/* navegação */}}
+        onPress={() => {
+          /* navegação */
+        }}
       />
       <DrawerItem
         label="Logout"
-        labelStyle={styles.label}
-        icon={({ color, size }) => <Icon name="logout" color="#C2A14A" size={32} style={{ marginLeft: 24 }} />}
         style={styles.menuItem}
-        onPress={() => props.navigation.navigate('LogOut')}
+        labelStyle={styles.label}
+        onPress={() => props.navigation.navigate("LogOut")}
+        icon={() => (
+          <Icon
+            size={32}
+            name="logout"
+            color="#A57B2F"
+            style={{ marginRight: 10 }}
+          />
+        )}
       />
     </DrawerContentScrollView>
   );
-}
+};
 
 const styles = StyleSheet.create({
   logoContainer: {
-    alignItems: 'flex-start', // Alinha a logo à esquerda
-    marginVertical: 30,
-    width: '100%',
-    paddingLeft: 20,
+    width: "100%",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   logo: {
-    width: 100,
-    height: 100,
-    marginBottom: 10,
+    width: 150,
+    height: 150,
+    marginLeft: 16,
   },
   logoText: {
-    color: '#FFD700',
     fontSize: 22,
-    fontWeight: 'bold',
+    color: "#FFD700",
+    fontWeight: "bold",
   },
   label: {
-    color: '#fff',
     fontSize: 24,
-    fontWeight: 'bold',
-    textAlign: 'left',
-    marginLeft: 0,
-    marginRight: 24,
-    backgroundColor: 'transparent',
+    marginLeft: -16,
+    color: "#fff",
+    textAlign: "left",
+    fontWeight: "bold",
+    backgroundColor: "transparent",
   },
   menuItem: {
-    // flexDirection: 'row',
-    justifyContent: 'space-between',
-    // alignItems: 'center',
+    paddingLeft: 8,
     marginBottom: 5,
-    // paddingLeft: 0,
-    // paddingRight: 0,
+    justifyContent: "flex-start",
+  },
+  closeButton: {
+    width: 40,
+    height: 40,
+    marginRight: 16,
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#1DA1F2",
+  },
+  headerContainer: {
+    height: 56,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    backgroundColor: "#fff",
+    justifyContent: "space-between",
+  },
+  headerTitle: {
+    flex: 1,
+    fontSize: 18,
+    color: "#000",
+    fontWeight: "bold",
+    textAlign: "center",
+  },
+  headerButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  drawerButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#1DA1F2",
   },
 });
+
+type CustomHeaderProps = {
+  title: string;
+  navigation: any;
+  showBackButton?: boolean;
+};
+
+const CustomHeader: React.FC<CustomHeaderProps> = ({ title, navigation, showBackButton = false }) => {
+  return (
+    <View style={styles.headerContainer}>
+      <TouchableOpacity 
+        style={styles.headerButton} 
+        onPress={() => showBackButton ? navigation.goBack() : {}}
+      >
+        {showBackButton && <Icon name="arrow-left" size={24} color="#FFFFFF" />}
+      </TouchableOpacity>
+      
+      <Text style={styles.headerTitle}>{title}</Text>
+      
+      <TouchableOpacity 
+        style={styles.drawerButton} 
+        onPress={() => navigation.openDrawer()}
+      >
+        <Icon name="menu" size={24} color="#FFFFFF" />
+      </TouchableOpacity>
+    </View>
+  );
+};
 
 const DrawerNavigation: React.FC = () => {
   return (
     <Drawer.Navigator
-      drawerContent={props => <CustomDrawerContent {...props} />}
+      drawerContent={(props) => <CustomDrawerContent {...props} />}
       screenOptions={{
-        headerStyle: { backgroundColor: '#021E40' },
-        headerTintColor: 'white',
+        drawerPosition: "right",
+        header: ({ navigation, route }) => {
+          let showBackButton = route.name !== "Menu";
+          return <CustomHeader title={route.name} navigation={navigation} showBackButton={showBackButton} />;
+        },
       }}
     >
       <Drawer.Screen name="Menu" component={Dashboard} />

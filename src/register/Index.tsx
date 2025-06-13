@@ -18,7 +18,6 @@ import {
 
 import api from "../config/index";
 import LoadingScreen from "../loading/Index";
-import InputLabel from "../components/InputLabel";
 import InputTopLabel from "../components/InputTopLabel";
 
 const { width, height } = Dimensions.get("window");
