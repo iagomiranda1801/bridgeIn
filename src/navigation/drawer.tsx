@@ -253,17 +253,26 @@ type CustomHeaderProps = {
   title: string;
   navigation: any;
   showBackButton?: boolean;
+  isProfileScreen?: boolean;
 };
 
-const CustomHeader: React.FC<CustomHeaderProps> = ({ title, navigation, showBackButton = false }) => {
+const CustomHeader: React.FC<CustomHeaderProps> = ({ title, navigation, showBackButton = false, isProfileScreen = false }) => {
   return (
     <View style={styles.headerContainer}>
-      <TouchableOpacity 
-        style={styles.headerButton} 
-        onPress={() => showBackButton ? navigation.goBack() : {}}
-      >
-        {showBackButton && <Icon name="arrow-left" size={24} color="#FFFFFF" />}
-      </TouchableOpacity>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+        {isProfileScreen && (
+          <TouchableOpacity 
+            style={styles.drawerButton} 
+            onPress={() => {
+              // Navegar para a tela de edição de perfil
+              navigation.navigate('Profile', { editing: true });
+            }}
+          >
+            <Icon name="pencil" size={24} color="#FFFFFF" />
+          </TouchableOpacity>
+        )}
+        {!isProfileScreen && <View style={{ width: 40 }} />}
+      </View>
       
       <Text style={styles.headerTitle}>{title}</Text>
       
@@ -284,13 +293,18 @@ const DrawerNavigation: React.FC = () => {
       screenOptions={{
         drawerPosition: "right",
         header: ({ navigation, route }) => {
-          let showBackButton = route.name !== "Menu";
-          return <CustomHeader title={route.name} navigation={navigation} showBackButton={showBackButton} />;
+          let isProfileScreen = route.name === "Profile";
+          return <CustomHeader 
+            title={route.name} 
+            navigation={navigation} 
+            showBackButton={false} 
+            isProfileScreen={isProfileScreen} 
+          />;
         },
       }}
     >
       <Drawer.Screen name="Menu" component={Dashboard} />
-      <Drawer.Screen name="Profile" component={ProfileScreen} />
+      <Drawer.Screen name="Profile" component={ProfileScreen} initialParams={{ editing: false }} />
       <Drawer.Screen name="LogOut" component={LogoutScreen} />
     </Drawer.Navigator>
   );

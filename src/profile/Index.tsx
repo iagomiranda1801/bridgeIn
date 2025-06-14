@@ -1,493 +1,361 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, TextInput, ActivityIndicator } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
-import Toast from 'react-native-toast-message';
-import api from '../config';
-import { RFValue } from 'react-native-responsive-fontsize';
-import * as ImagePicker from 'expo-image-picker';
-import * as FileSystem from 'expo-file-system';
+import React, { useState, useEffect } from 'react';
+import { useRoute } from '@react-navigation/native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 
-const ProfileScreen = () => {
-  const insets = useSafeAreaInsets();
-  const [profile, setProfile] = useState(null);
+import Button from '../components/Button';
+import Divider from '../components/Divider';
+import Checkbox from '../components/Checkbox';
+
+import ProfileHeader from './ProfileHeader';
+import PhotosSection from './PhotosSection';
+import DocumentsSection from './DocumentsSection';
+
+type ProfileScreenProps = {
+  route?: {
+    params?: {
+      editing?: boolean;
+    };
+  };
+};
+
+const ProfileScreen: React.FC<ProfileScreenProps> = () => {
+  const route = useRoute();
+
   const [isEditing, setIsEditing] = useState(false);
-  const [name, setName] = useState('');
-  const [salary_range, setSalaryRange] = useState('');
-  const [experience_time, setExperienceTime] = useState('');
-  const [availability, setAvailability] = useState({
-    Morning: false,
-    Afternoon: false,
-    Night: false,
-    Dawn: false,
-  });
-  const [description, setDescription] = useState('');
-  const [profession, setProfession] = useState('');
-  const [selectedDays, setSelectedDays] = useState<string[]>([]);
-  const weekDays = ['Sun', 'M', 'Tue', 'W', 'Thu', 'F', 'Sat'];
-  const [loading, setLoading] = useState(false);
-  const [avatarUri, setAvatarUri] = useState(null);
-  const [imageVersion, setImageVersion] = useState(Date.now());
+
+  // Dados de exemplo para as fotos
+  const photos = [
+    { id: '1', uri: 'https://images.unsplash.com/photo-1590479773265-7464e5d48118?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80' },
+    { id: '2', uri: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80' },
+    { id: '3', uri: 'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80' },
+    { id: '4', uri: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2069&q=80' },
+  ];
+  
+  // Dados de exemplo para os documentos
+  const documents = [
+    { id: '1', name: 'authorization_certificate.pdf', type: 'pdf' },
+    { id: '2', name: 'identity_card.pdf', type: 'pdf' },
+    { id: '3', name: 'construction_license_2025.pdf', type: 'pdf' },
+    { id: '4', name: 'safety_training_certificate.pdf', type: 'pdf' },
+  ];
 
   useEffect(() => {
-    (async () => {
-      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert('Permissão necessária', 'Precisamos de acesso à galeria para escolher uma imagem.');
-      }
-    })();
-  }, []);
-
-  const toggleSlot = (slot: string) => {
-    setAvailability(prev => ({ ...prev, [slot]: !prev[slot] }));
-  };
-
-  const toggleDay = (day: string) => {
-    setSelectedDays(prev =>
-      prev.includes(day) ? prev.filter(d => d !== day) : [...prev, day]
-    );
-  };
-
-  const pickImage = async () => {
-    setAvatarUri(null)
-
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      quality: 0.7,
-    });
-
-    if (!result.canceled && result.assets.length > 0) {
-      console.log("result", result.assets[0].uri)
-      setAvatarUri(result.assets[0].uri);
+    if (route.params?.editing) {
+      setIsEditing(true);
     }
-  };
-
-  async function fetchData() {
-    try {
-      const response = await api.post('/mobile/users/dados');
-      console.log("🚀 ~ fetchData ~ response:", response)
-      const data = response.data.Data
-      
-      setProfile(data);
-      setProfession(data.profession);
-      setName(data.name);
-      setSalaryRange(data.salary_range);
-      setExperienceTime(data.experience_time);
-      setDescription(data.description);
-      setAvatarUri(data?.imagem ? `${data.imagem}?v=${Date.now()}` : null); // Atualiza avatarUri com a imagem do banco e parâmetro para evitar cache
-      setSelectedDays(data.days_of_week ? JSON.parse(data.days_of_week) : []);
-      setAvailability(typeof data.availability === 'string' ? JSON.parse(data.availability) : data.availability);
-      console.log("entrei")
-    } catch (error) {
-      console.error('Erro ao logar:', error);
-      Toast.show({
-        type: 'error',
-        text1: 'Error in login',
-        text2: 'Contact your administrator',
-      });
-    } finally {
-
-    }
-  }
-
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const handleSaveProfile = async () => {
-    try {
-      let base64Image = null;
-      let fileType = null;
-      if (avatarUri && avatarUri.startsWith('file://')) {
-        const fileName = avatarUri.split('/').pop();
-        fileType = fileName.split('.').pop();
-        base64Image = await FileSystem.readAsStringAsync(avatarUri, { encoding: FileSystem.EncodingType.Base64 });
-      }
-
-      const payload = {
-        ...(base64Image && { imagem_base64: `data:image/${fileType};base64,${base64Image}` }),
-        name,
-        salary_range,
-        experience_time,
-        description,
-        profession,
-        availability: JSON.stringify(availability),
-        email: profile?.email,
-        login: profile?.email,
-        days_of_week: JSON.stringify(selectedDays),
-        id: String(profile?.id),
-        user_id: String(profile?.user_id),
-      };
-
-      console.log("payload", payload)
-
-      const response = await api.post('/mobile/users/update', payload, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      console.log("response", response.data);
-
-      if (response.data.Status !== 1) {
-        Toast.show({
-          type: 'error',
-          text1: 'Erro ao atualizar perfil!',
-          text2: 'Verifique os dados e tente novamente.',
-        });
-        return;
-      }
-
-      Toast.show({
-        type: 'success',
-        text1: 'Perfil atualizado!',
-        text2: 'Seus dados foram salvos com sucesso.',
-      });
-
-      setIsEditing(false);
-      setAvatarUri(profile?.imagem ? `${profile.imagem}?v=${Date.now()}` : null); // Atualiza avatarUri com a imagem do banco e parâmetro para evitar cache
-      fetchData(); // Recarrega os dados atualizados
-
-    } catch (error) {
-      console.error('Erro ao atualizar perfil:', error);
-      Toast.show({
-        type: 'error',
-        text1: 'Erro ao salvar',
-        text2: 'Tente novamente mais tarde.',
-      });
-    }
-  };
-
+  }, [route.params]);
 
   return (
-    <ScrollView contentContainerStyle={[styles.container, { paddingTop: insets.top }]}>
-      {isEditing ? (
-        <View style={styles.header}>
-          <TouchableOpacity onPress={pickImage} style={styles.iconButton}>
-            <Text style={{fontSize: 24}}>🖼️</Text>
-          </TouchableOpacity>
-          {avatarUri && (
-            <Image
-              source={{ uri: avatarUri }}
-              style={styles.avatar}
-            />
-          )}
-          <TouchableOpacity onPress={() => setIsEditing(!isEditing)} style={styles.iconButton}>
-            <Text style={{fontSize: 24}}>✏️</Text>
-          </TouchableOpacity>
+    <ScrollView style={styles.container}>
+      <ProfileHeader 
+        name="Jack Smith" 
+        avatarUri="https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=687&q=80" 
+        progressPercentage={0.8}
+        salaryRange="$800"
+        experienceTime="7 years" 
+      />
+      <View style={styles.content}>
+        <View style={styles.professionalAreaContainer}>
+          <Text style={styles.professionalAreaTitle}>Professional Area:</Text>
+          <Text style={styles.professionalAreaText}>
+            Skills: Installation and repair: Proficient in installing and repairing pipes, plumbing issues, clogged toilets.
+          </Text>
+          <Divider color="#A2E2FB" thickness={3} marginVertical={12} />
         </View>
-      ) : (
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => setIsEditing(!isEditing)} style={styles.iconButton}>
-            <Text style={{fontSize: 24}}>✏️</Text>
-          </TouchableOpacity>
-          {avatarUri && (
-            <Image
-              source={{ uri: avatarUri }}
-              style={styles.avatar}
-            />
-          )}
+        
+        <PhotosSection photos={photos} />
+        <Divider color="#A2E2FB" thickness={3} marginVertical={12} />
+        
+        <DocumentsSection documents={documents} />
+        <Divider color="#A2E2FB" thickness={3} marginVertical={12} />
+        
+        <View style={styles.moreInfoContainer}>
+          <Text style={styles.moreInfoTitle}>More information:</Text>
+          <Text style={styles.moreInfoText}>Speak English and Spanish.</Text>
         </View>
-      )}
-
-      {
-        isEditing ? (
-          <View style={styles.inputWrapper}>
-            <TextInput placeholder="Name" placeholderTextColor="black" value={name} onChangeText={setName} style={styles.input} />
-          </View>
-        ) : (
-          <View style={styles.section}>
-            <Text style={styles.label}>Name:</Text>
-            <Text style={styles.text}>{profile?.name}</Text>
-          </View>
-        )
-      }
-
-      {
-        isEditing ? (
-          <View style={styles.inputWrapper}>
-            <TextInput
-              value={salary_range}
-              placeholder="Salary Range"
-              placeholderTextColor="black"
-              onChangeText={setSalaryRange}
-              style={styles.input}
-            />
-          </View>
-        ) : (
-          <View style={styles.section}>
-            <Text style={styles.label}>Salary Range:</Text>
-            <Text style={styles.text}>{profile?.salary_range}</Text>
-          </View>
-        )
-      }
-
-      {
-        isEditing ? (
-          <View style={styles.inputWrapper}>
-            <TextInput
-              value={experience_time}
-              placeholder='Experience Time'
-              placeholderTextColor={"black"}
-              onChangeText={setExperienceTime}
-              style={styles.input}
-            />
-          </View>
-
-        ) : (
-          <View style={styles.section}>
-            <Text style={styles.label}>Experience Time:</Text>
-            <Text style={styles.text}>{profile?.experience_time}</Text>
-          </View>
-        )
-      }
-
-      {
-        isEditing ? (
-          <View style={styles.inputWrapper}>
-            <TextInput
-              placeholder='Profession'
-              placeholderTextColor={"black"}
-              value={profession}
-              onChangeText={setProfession}
-              style={styles.input}
-            />
-          </View>
-
-        ) : (
-          <View style={styles.section}>
-            <Text style={styles.label}>Professional Area:</Text>
-            <Text style={styles.text}>{profile?.profession}</Text>
-          </View>
-        )
-      }
-
-      {
-        isEditing ? (
-          <View style={styles.inputWrapper}>
-            <TextInput
-              placeholder='More Information:'
-              placeholderTextColor={"black"}
-              value={description}
-              onChangeText={setDescription}
-              style={styles.text}
-            />
-          </View>
-
-        ) : (
-          <View style={styles.section}>
-            <Text style={styles.label}>More Information:</Text>
-            <Text style={styles.text}>{profile?.description}</Text>
-          </View>
-        )
-      }
-
-      <View style={styles.daysRow}>
-        {weekDays.map((day, i) => (
-          <TouchableOpacity
-            disabled={!isEditing}
-            key={i}
-            style={[
-              styles.dayBox,
-              selectedDays.includes(day) && styles.dayBoxFilled,
-            ]}
-            onPress={() => toggleDay(day)}
-          >
-            <Text
-              style={[
-                styles.dayText,
-                selectedDays.includes(day) ? { color: '#fff' } : { color: '#0a2e4d' },
-              ]}
+        
+        <View style={styles.syndicateButtonContainer}>
+          <Button
+            label="Syndicate verification"
+            onPress={() => console.log('Syndicate verification pressed')}
+            variant="outlined"
+            size="medium"
+            icon="check-decagram"
+          />
+        </View>
+        
+        <View style={styles.daysOfWeekContainer}>
+          <Text style={styles.sectionTitle}>Days of the week</Text>
+          <View style={styles.daysButtonsContainer}>
+            <TouchableOpacity 
+              style={styles.dayButton}
+              onPress={() => console.log('Sunday pressed')}
             >
-              {day}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.label}>Availability</Text>
-        <View style={styles.availabilityRow}>
-          {Object.entries(availability).map(([slot, isSelected], index) => (
-            <TouchableOpacity disabled={!isEditing} key={index} style={styles.availBox} onPress={() => toggleSlot(slot)}>
-              <View style={[styles.checkbox, isSelected && styles.checkboxChecked]} />
-              <Text style={{width: '100%'}}>{slot}</Text>
+              <Text style={styles.dayButtonText}>S</Text>
             </TouchableOpacity>
-          ))}
+            
+            <TouchableOpacity 
+              style={styles.dayButton}
+              onPress={() => console.log('Monday pressed')}
+            >
+              <Text style={styles.dayButtonText}>M</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              style={[styles.dayButton, styles.selectedDayButton]}
+              onPress={() => console.log('Tuesday pressed')}
+            >
+              <Text style={styles.selectedDayButtonText}>T</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              style={[styles.dayButton, styles.selectedDayButton]}
+              onPress={() => console.log('Wednesday pressed')}
+            >
+              <Text style={styles.selectedDayButtonText}>W</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              style={[styles.dayButton, styles.selectedDayButton]}
+              onPress={() => console.log('Thursday pressed')}
+            >
+              <Text style={styles.selectedDayButtonText}>T</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              style={[styles.dayButton, styles.selectedDayButton]}
+              onPress={() => console.log('Friday pressed')}
+            >
+              <Text style={styles.selectedDayButtonText}>F</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              style={styles.dayButton}
+              onPress={() => console.log('Saturday pressed')}
+            >
+              <Text style={styles.dayButtonText}>S</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+        
+        <View style={styles.availabilityContainer}>
+          <Text style={styles.sectionTitle}>Availability</Text>
+          <View style={styles.checkboxContainer}>
+            <View style={styles.checkboxRow}>
+              <TouchableOpacity 
+                style={styles.customCheckbox}
+                onPress={() => console.log('Morning toggled')}
+              >
+                <View style={[styles.checkboxSquare, styles.checkedBox]}>
+                  <Text style={styles.checkMark}>✓</Text>
+                </View>
+                <Text style={styles.checkboxLabel}>Morning</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={styles.customCheckbox}
+                onPress={() => console.log('Afternoon toggled')}
+              >
+                <View style={[styles.checkboxSquare, styles.checkedBox]}>
+                  <Text style={styles.checkMark}>✓</Text>
+                </View>
+                <Text style={styles.checkboxLabel}>Afternoon</Text>
+              </TouchableOpacity>
+            </View>
+            
+            <View style={styles.checkboxRow}>
+              <TouchableOpacity 
+                style={styles.customCheckbox}
+                onPress={() => console.log('Night toggled')}
+              >
+                <View style={styles.checkboxSquare}>
+                  {/* Unchecked */}
+                </View>
+                <Text style={styles.checkboxLabel}>Night</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={styles.customCheckbox}
+                onPress={() => console.log('Dawn toggled')}
+              >
+                <View style={styles.checkboxSquare}>
+                  {/* Unchecked */}
+                </View>
+                <Text style={styles.checkboxLabel}>Dawn</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         </View>
       </View>
-      {
-        isEditing && (
-          <TouchableOpacity onPress={handleSaveProfile} style={styles.loginButton}>
-            {loading ? (
-              <ActivityIndicator size="large" style={{ flex: 1 }} color="white" animating={true}></ActivityIndicator>
-            ) : (
-              <Text style={styles.loginText}> Registrar</Text>
-            )}
-
-          </TouchableOpacity>
-        )
-      }
-    </ScrollView >
+    </ScrollView>
   );
 };
 
-export default ProfileScreen;
-
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#e6f5fb',
-    paddingHorizontal: wp('5%'),
-    paddingBottom: hp('10%'),
-  },
-  inputWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderBottomWidth: 1,
-    borderBottomColor: 'black',
-    borderRadius: 8,
-    width: '100%',
-    marginBottom: hp('2%'),
-  },
-  input: {
     flex: 1,
-    height: 48,
-    fontSize: RFValue(16),
-    color: 'black',
-    borderColor: '#000',
-    paddingHorizontal: 10,
+    backgroundColor: '#FFFFFF',
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+  content: {
+    padding: 20,
   },
-  iconButton: {
-    padding: wp('2%'),
-    backgroundColor: '#1DBFFF',
-  },
-  loginButton: {
-    width: '100%',
-    backgroundColor: '#1DBFFF',
-    borderRadius: 12,
-    paddingVertical: 15,
-    alignItems: 'center',
+  professionalAreaContainer: {
     marginBottom: 20,
+    paddingHorizontal: 0,
   },
-  loginText: {
-    color: '#fff',
-    fontSize: RFValue(16),
+  professionalAreaTitle: {
+    fontSize: 18,
     fontWeight: 'bold',
+    color: '#000000',
+    marginBottom: 8,
   },
-  avatar: {
-    width: wp('30%'),
-    height: wp('30%'),
-    borderRadius: wp('15%'),
+  professionalAreaText: {
+    fontSize: 16,
+    color: '#333333',
+    marginBottom: 16,
+    lineHeight: 24,
   },
-  name: {
-    fontSize: wp('6%'),
+  moreInfoContainer: {
+    marginBottom: 5,
+    paddingHorizontal: 0,
+  },
+  moreInfoTitle: {
+    fontSize: 18,
     fontWeight: 'bold',
-    textAlign: 'center',
-    marginVertical: hp('1%'),
+    color: '#000000',
+    marginBottom: 8,
   },
-  progressText: {
-    textAlign: 'center',
-    color: '#333',
+  moreInfoText: {
+    fontSize: 16,
+    color: '#333333',
+    marginBottom: 16,
+    lineHeight: 24,
   },
-  progressBar: {
-    height: hp('1.5%'),
-    width: '100%',
-    backgroundColor: '#d3eef7',
-    borderRadius: 20,
-    overflow: 'hidden',
-    marginVertical: hp('1%'),
-  },
-  progressFill: {
-    width: '80%',
-    backgroundColor: '#00aaff',
-    height: '100%',
+  syndicateButtonContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginVertical: 20,
   },
   section: {
-    marginVertical: hp('1.5%'),
-    width: '100%',
+    padding: 16,
+    elevation: 2,
+    borderRadius: 8,
+    shadowRadius: 4,
+    marginBottom: 16,
+    shadowOpacity: 0.1,
+    shadowColor: '#000',
+    backgroundColor: '#FFFFFF',
+    shadowOffset: { width: 0, height: 2 },
   },
-  label: {
+  sectionTitle: {
+    fontSize: 18,
+    marginBottom: 8,
     fontWeight: 'bold',
-    fontSize: wp('4.5%'),
-    marginBottom: 5,
+    color: '#10365F',
   },
   text: {
-    fontSize: wp('4%'),
+    fontSize: 16,
+    marginBottom: 8,
+    color: '#333333',
   },
-  photo: {
-    width: wp('25%'),
-    height: wp('25%'),
-    marginRight: wp('2%'),
+  editingIndicator: {
+    padding: 8,
+    marginTop: 16,
+    borderRadius: 4,
+    alignItems: 'center',
+    flexDirection: 'row',
+    backgroundColor: '#E8F5FE',
+  },
+  editingText: {
+    marginLeft: 8,
+    color: '#1DA1F2',
+    fontWeight: 'bold',
+  },
+  availabilityContainer: {
+    marginVertical: 16,
+    backgroundColor: '#E8F5FE',
+    padding: 16,
     borderRadius: 8,
   },
-  tagsRow: {
+  checkboxContainer: {
+    marginTop: 10,
+  },
+  checkboxRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
+    justifyContent: 'flex-start',
+    marginBottom: 10,
   },
-  docTag: {
-    backgroundColor: '#0c3c68',
-    padding: 8,
-    borderRadius: 10,
-    marginRight: 8,
-  },
-  docText: {
-    color: '#fff',
-    fontSize: wp('3.5%'),
-  },
-  link: {
-    textAlign: 'center',
-    color: '#0a2e4d',
-    fontSize: wp('4%'),
-    textDecorationLine: 'underline',
-    marginVertical: hp('1%'),
-  },
-  daysRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  dayBox: {
-    width: wp('10%'),
-    height: wp('10%'),
-    borderRadius: 10,
-    borderWidth: 2,
-    borderColor: '#0a2e4d',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  dayBoxFilled: {
-    backgroundColor: '#0a2e4d',
-  },
-  dayText: {
-    color: '#fff',
-  },
-  availabilityRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    width: '100%',
-    justifyContent: 'space-between',
-  },
-  availBox: {
+  customCheckbox: {
     flexDirection: 'row',
     alignItems: 'center',
     marginRight: 20,
-    marginBottom: 10,
-    width: '20%',
+    marginBottom: 5,
   },
-  checkbox: {
-    width: 20,
-    height: 20,
-    borderWidth: 1,
-    borderColor: '#000',
-    marginRight: 8,
+  checkboxSquare: {
+    width: 24,
+    height: 24,
+    borderWidth: 2,
+    borderColor: '#10365F',
     borderRadius: 4,
+    marginRight: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  checkboxChecked: {
-    backgroundColor: '#000',
+  checkedBox: {
+    backgroundColor: '#10365F',
+  },
+  checkMark: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  checkboxLabel: {
+    fontSize: 16,
+    color: '#000000',
+  },
+  daysOfWeekContainer: {
+    marginVertical: 16,
+    backgroundColor: '#E8F5FE',
+    padding: 16,
+    borderRadius: 8,
+  },
+  daysButtonsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 10,
+    paddingHorizontal: 5,
+  },
+  dayButton: {
+    width: 40,
+    height: 40,
+    marginHorizontal: 2,
+    borderRadius: 8,
+    borderColor: '#10365F',
+    borderWidth: 2,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'transparent',
+  },
+  selectedDayButton: {
+    backgroundColor: '#10365F',
+  },
+  dayButtonText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#10365F',
+  },
+  selectedDayButtonText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+  },
+  availabilityContainer: {
+    marginVertical: 16,
+  },
+  checkboxContainer: {
+    marginTop: 10,
   },
 });
+
+export default ProfileScreen;
+
